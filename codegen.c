@@ -63,8 +63,11 @@ void codegen(Node *node)
     printf(".global main\n");
     printf("main:\n");
 
-    gen(node);
-    // 結果はstackの頭にあるので、raxにpopしてexit codeにする
-    printf("  pop rax\n");
+    for (Node *n = node; n; n = n->next)
+    {
+        gen(n);
+        printf("  pop rax\n");
+    }
+
     printf("  ret\n");
 }
