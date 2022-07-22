@@ -172,12 +172,19 @@ Node *new_node_num(int val)
 }
 
 Node *expr();
+Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
 
-// expr = mul ("+" mul | "-" mul)*
+// expr = add
 Node *expr()
+{
+    return add();
+}
+
+// add = mul ("+" mul | "-" mul)*
+Node *add()
 {
     Node *node = mul();
 
