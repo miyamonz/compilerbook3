@@ -118,6 +118,8 @@ Token *tokenize()
         }
 
         if (
+            startswith(p, "==") ||
+            startswith(p, "!=") ||
             startswith(p, "<=") ||
             startswith(p, ">="))
         {
@@ -155,6 +157,8 @@ typedef enum
     ND_SUB, // -
     ND_MUL, // *
     ND_DIV, // /
+    ND_EQ,  // ==
+    ND_NE,  // !=
     ND_LT,  // <
     ND_LE,  // <=
     ND_NUM, // 整数
@@ -188,16 +192,33 @@ Node *new_node_num(int val)
 }
 
 Node *expr();
+Node *equality();
 Node *relational();
 Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
 
-// expr = relational
+// expr = equality
 Node *expr()
 {
-    return relational();
+    return equality();
+}
+
+// equality = relational ("==" relational | "!=" relational)*
+Node *equality()
+{
+    Node *node = relational();
+
+    for (;;)
+    {
+        if (consume("=="))
+            node = new_node(ND_EQ, node, relational());
+        if (consume("!="))
+            node = new_node(ND_NE, node, relational());
+        else
+            return node;
+    }
 }
 
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
@@ -307,6 +328,16 @@ void gen(Node *node)
         // cqo命令を使うと、RAXに入っている64ビットの値を128ビットに伸ばしてRDXとRAXにセットすることができるので、上記のコードではidivを呼ぶ前にcqoを呼んでいます。
         printf("  cqo\n");
         printf("  idiv rdi\n");
+        break;
+    case ND_EQ:
+        printf("  cmp rax, rdi\n");
+        printf("  sete al\n");
+        printf("  movzb rax, al\n");
+        break;
+    case ND_NE:
+        printf("  cmp rax, rdi\n");
+        printf("  setne al\n");
+        printf("  movzb rax, al\n");
         break;
     case ND_LT:
         printf("  cmp rax, rdi\n");
