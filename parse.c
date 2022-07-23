@@ -100,6 +100,7 @@ Program *program()
 
 // stmt = "return" expr ";"
 //        | "if" "(" expr ")" stmt ("else" stmt)?
+//        | "while" "(" expr ")" stmt
 //        | expr ";"
 Node *stmt()
 {
@@ -120,6 +121,17 @@ Node *stmt()
         node->then = stmt();
         if (consume("else"))
             node->els = stmt();
+        return node;
+    }
+
+    if (consume("while"))
+    {
+        Node *node = new_node(ND_WHILE);
+
+        expect("(");
+        node->cond = expr();
+        expect(")");
+        node->then = stmt();
         return node;
     }
 
