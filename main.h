@@ -8,9 +8,10 @@
 // tokenize.c
 typedef enum
 {
-    TK_RESERVED,
-    TK_NUM,
-    TK_EOF,
+    TK_RESERVED, // Keywords or punctuators
+    TK_IDENT,    // Identifiers
+    TK_NUM,      // Interger Literals
+    TK_EOF,      // End-of-file markers
 } TokenKind;
 
 typedef struct Token Token;
@@ -27,6 +28,7 @@ struct Token
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
+Token *consume_ident();
 void expect(char *op);
 int expect_number();
 bool at_eof();
@@ -47,8 +49,10 @@ typedef enum
     ND_NE,        // !=
     ND_LT,        // <
     ND_LE,        // <=
+    ND_ASSIGN,    // =
     ND_RETURN,    // return
     ND_EXPR_STMT, // Expression statement
+    ND_LVAR,      // Local variable
     ND_NUM,       // 整数
 } NodeKind;
 
@@ -60,7 +64,8 @@ struct Node
     Node *next; // next statement node
     Node *lhs;
     Node *rhs;
-    int val; // only used when ND_NUM
+    char name; // Used if kind == ND_LVAR
+    int val;   // Used if kind == ND_NUM
 };
 
 Node *program();
