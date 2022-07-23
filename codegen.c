@@ -2,10 +2,9 @@
 
 void gen_addr(Node *node)
 {
-    if (node->kind == ND_LVAR)
+    if (node->kind == ND_VAR)
     {
-        int offset = (node->name - 'a' + 1) * 8;
-        printf("  lea rax, [rbp-%d]\n", offset);
+        printf("  lea rax, [rbp-%d]\n", node->var->offset);
         printf("  push rax\n");
         return;
     }
@@ -39,7 +38,7 @@ void gen(Node *node)
         gen(node->lhs);
         printf("  add rsp, 8\n");
         return;
-    case ND_LVAR:
+    case ND_VAR:
         gen_addr(node);
         load();
         return;
@@ -113,7 +112,7 @@ void codegen(Node *node)
     // Prologue
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    printf("  sub rsp, 208\n"); // len(a~z) * 8 => 26 * 8 => 208
+    printf("  sub rsp, %d\n", node->stack_size);
 
     for (Node *n = node; n; n = n->next)
     {

@@ -1,5 +1,17 @@
 #include "main.h"
 
+Var *locals;
+
+Var *find_var(Token *tok)
+{
+    for (Var *var = locals; var; var = var->next)
+    {
+        if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
+            return var;
+    }
+    return NULL;
+}
+
 Node *new_node(NodeKind kind)
 {
     Node *node = calloc(1, sizeof(Node));
@@ -29,11 +41,20 @@ Node *new_node_num(int val)
     return node;
 }
 
-Node *new_lvar(char name)
+Node *new_var(Var *var)
 {
-    Node *node = new_node(ND_LVAR);
-    node->name = name;
+    Node *node = new_node(ND_VAR);
+    node->var = var;
     return node;
+}
+
+Var *push_var(char *name)
+{
+    Var *var = calloc(1, sizeof(Var));
+    var->next = locals;
+    var->name = name;
+    locals = var;
+    return var;
 }
 
 Node *stmt();
@@ -49,6 +70,8 @@ Node *primary();
 // program = stmt*
 Node *program()
 {
+    locals = NULL;
+
     Node head;
     head.next = NULL;
     Node *cur = &head;
@@ -58,6 +81,16 @@ Node *program()
         cur->next = stmt();
         cur = cur->next;
     }
+
+    // Assign offsets to local variables
+    int offset = 0;
+    for (Var *var = locals; var; var = var->next)
+    {
+        offset += 8;
+        var->offset = offset;
+    }
+    head.next->stack_size = offset;
+
     return head.next;
 }
 
@@ -182,7 +215,14 @@ Node *primary()
 
     Token *tok = consume_ident();
     if (tok)
-        return new_lvar(*tok->str);
+    {
+        Var *var = find_var(tok);
+        if (!var)
+        {
+            var = push_var(strndup(tok->str, tok->len));
+        }
+        return new_var(var);
+    }
 
     return new_node_num(expect_number());
 }

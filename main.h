@@ -27,6 +27,7 @@ struct Token
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
+char *strndup(char *p, int len);
 bool consume(char *op);
 Token *consume_ident();
 void expect(char *op);
@@ -38,7 +39,20 @@ Token *tokenize();
 extern char *user_input;
 extern Token *token;
 
+//
 // parse.c
+//
+
+// Local variable
+typedef struct Var Var;
+struct Var
+{
+    Var *next;
+    char *name; // Variable name
+    int offset; // offset from RBP
+};
+
+// AST node
 typedef enum
 {
     ND_ADD,       // +
@@ -52,7 +66,7 @@ typedef enum
     ND_ASSIGN,    // =
     ND_RETURN,    // return
     ND_EXPR_STMT, // Expression statement
-    ND_LVAR,      // Local variable
+    ND_VAR,       // variable
     ND_NUM,       // 整数
 } NodeKind;
 
@@ -64,8 +78,10 @@ struct Node
     Node *next; // next statement node
     Node *lhs;
     Node *rhs;
-    char name; // Used if kind == ND_LVAR
-    int val;   // Used if kind == ND_NUM
+    Var *var; // Used if kind == ND_VAR
+    int val;  // Used if kind == ND_NUM
+
+    int stack_size; // Used if node is program;
 };
 
 Node *program();
