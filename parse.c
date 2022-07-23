@@ -99,6 +99,7 @@ Program *program()
 }
 
 // stmt = "return" expr ";"
+//        | "if" "(" expr ")" stmt ("else" stmt)?
 //        | expr ";"
 Node *stmt()
 {
@@ -106,6 +107,19 @@ Node *stmt()
     {
         Node *node = new_unary(ND_RETURN, expr());
         expect(";");
+        return node;
+    }
+
+    if (consume("if"))
+    {
+        Node *node = new_node(ND_IF);
+
+        expect("(");
+        node->cond = expr();
+        expect(")");
+        node->then = stmt();
+        if (consume("else"))
+            node->els = stmt();
         return node;
     }
 
