@@ -68,7 +68,7 @@ Node *unary();
 Node *primary();
 
 // program = stmt*
-Node *program()
+Program *program()
 {
     locals = NULL;
 
@@ -82,16 +82,20 @@ Node *program()
         cur = cur->next;
     }
 
+    Program *prog = calloc(1, sizeof(Program));
+    prog->node = head.next;
+    prog->locals = locals;
+
     // Assign offsets to local variables
     int offset = 0;
-    for (Var *var = locals; var; var = var->next)
+    for (Var *var = prog->locals; var; var = var->next)
     {
         offset += 8;
         var->offset = offset;
     }
-    head.next->stack_size = offset;
+    prog->stack_size = offset;
 
-    return head.next;
+    return prog;
 }
 
 // stmt = "return" expr ";"

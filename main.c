@@ -7,8 +7,8 @@ int main(int argc, char **argv)
 
     user_input = argv[1];
     token = tokenize();
-    Node *node = program();
+    Program *prog = program();
 
-    codegen(node);
+    codegen(prog);
     return 0;
 }

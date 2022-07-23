@@ -103,7 +103,8 @@ void gen(Node *node)
     printf("  push rax\n");
 }
 
-void codegen(Node *node)
+void codegen(Program *prog)
+
 {
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
@@ -112,9 +113,9 @@ void codegen(Node *node)
     // Prologue
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    printf("  sub rsp, %d\n", node->stack_size);
+    printf("  sub rsp, %d\n", prog->stack_size);
 
-    for (Node *n = node; n; n = n->next)
+    for (Node *n = prog->node; n; n = n->next)
     {
         gen(n);
     }

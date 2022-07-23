@@ -80,11 +80,16 @@ struct Node
     Node *rhs;
     Var *var; // Used if kind == ND_VAR
     int val;  // Used if kind == ND_NUM
-
-    int stack_size; // Used if node is program;
 };
 
-Node *program();
+typedef struct
+{
+    Node *node;
+    Var *locals;
+    int stack_size;
+} Program;
+
+Program *program();
 
 // codegen.c
-void codegen(Node *node);
+void codegen(Program *prog);
