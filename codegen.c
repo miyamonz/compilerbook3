@@ -2,6 +2,7 @@
 
 int labelseq = 0;
 char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"}; // https://www.sigbus.info/compilerbook#%E6%95%B4%E6%95%B0%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E4%B8%80%E8%A6%A7
+char *funcname;
 
 void gen_addr(Node *node)
 {
@@ -151,7 +152,7 @@ void gen(Node *node)
     case ND_RETURN:
         gen(node->lhs);
         printf("  pop rax\n");
-        printf("  jmp .Lreturn\n");
+        printf("  jmp .Lreturn.%s\n", funcname);
         return;
     }
 
@@ -204,27 +205,32 @@ void gen(Node *node)
     printf("  push rax\n");
 }
 
-void codegen(Program *prog)
-
+void codegen(Function *prog)
 {
     printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
 
-    // Prologue
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
-    printf("  sub rsp, %d\n", prog->stack_size);
-
-    for (Node *n = prog->node; n; n = n->next)
+    for (Function *fn = prog; fn; fn = fn->next)
     {
-        gen(n);
+
+        printf(".global %s\n", fn->name);
+        printf("%s:\n", fn->name);
+        funcname = fn->name;
+
+        // Prologue
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+        printf("  sub rsp, %d\n", fn->stack_size);
+
+        for (Node *n = fn->node; n; n = n->next)
+        {
+            gen(n);
+        }
+
+        // Epilogue
+        printf(".Lreturn.%s:\n", funcname);
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+
+        printf("  ret\n");
     }
-
-    // Epilogue
-    printf(".Lreturn:\n");
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-
-    printf("  ret\n");
 }

@@ -57,6 +57,7 @@ Var *push_var(char *name)
     return var;
 }
 
+Function *function();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -67,35 +68,55 @@ Node *mul();
 Node *unary();
 Node *primary();
 
-// program = stmt*
-Program *program()
+// program = function*
+Function *program()
+{
+    Function head;
+    head.next = NULL;
+    Function *cur = &head;
+    while (!at_eof())
+    {
+        cur->next = function();
+        cur = cur->next;
+    }
+    return head.next;
+}
+
+// function = ident "(" ")" "{" stmt* "}"
+Function *function()
 {
     locals = NULL;
+
+    char *name = expect_ident();
+    expect("(");
+    expect(")");
+    expect("{");
 
     Node head;
     head.next = NULL;
     Node *cur = &head;
 
-    while (!at_eof())
+    while (!consume("}"))
     {
         cur->next = stmt();
         cur = cur->next;
     }
 
-    Program *prog = calloc(1, sizeof(Program));
-    prog->node = head.next;
-    prog->locals = locals;
+    Function *fn = calloc(1, sizeof(Function));
+    fn->name = name;
+    fn->node = head.next;
+    fn->locals = locals;
 
     // Assign offsets to local variables
     int offset = 0;
-    for (Var *var = prog->locals; var; var = var->next)
+    for (Var *var = fn->locals; var; var = var->next)
     {
         offset += 8;
         var->offset = offset;
     }
-    prog->stack_size = offset;
+    fn->stack_size = offset;
 
-    return prog;
+    return fn;
 }
 
 Node *read_expr_stmt()
