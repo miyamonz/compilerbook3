@@ -1,6 +1,7 @@
 #include "main.h"
 
 int labelseq = 0;
+char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"}; // https://www.sigbus.info/compilerbook#%E6%95%B4%E6%95%B0%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E4%B8%80%E8%A6%A7
 
 void gen_addr(Node *node)
 {
@@ -115,9 +116,21 @@ void gen(Node *node)
             gen(n);
         return;
     case ND_FUNCALL:
+    {
+        int nargs = 0;
+        for (Node *arg = node->args; arg; arg = arg->next)
+        {
+            gen(arg);
+            nargs++;
+        }
+        for (int i = nargs - 1; i >= 0; i--)
+        {
+            printf("  pop %s\n", argreg[i]);
+        }
         printf("  call %s\n", node->funcname);
         printf("  push rax\n");
         return;
+    }
     case ND_RETURN:
         gen(node->lhs);
         printf("  pop rax\n");
