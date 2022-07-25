@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct Type Type;
+
 // tokenize.c
 typedef enum
 {
@@ -20,7 +22,8 @@ struct Token
 {
     TokenKind kind;
     Token *next;
-    int val; // only used when TK_NUM
+    Type *ty; // Type, e.g. int or pointer to int
+    int val;  // only used when TK_NUM
     char *str;
     int len;
 };
@@ -91,6 +94,7 @@ struct Node
 {
     NodeKind kind;
     Node *next; // next statement node
+    Type *ty;   // Type, e.g. int or pointer to int
     Token *tok; // Representative token
 
     Node *lhs;
@@ -127,6 +131,20 @@ struct Function
 };
 
 Function *program();
+
+// typing.c
+typedef enum
+{
+    TY_INT,
+    TY_PTR
+} TypeKind;
+struct Type
+{
+    TypeKind kind;
+    Type *base;
+};
+
+void add_type(Function *prog);
 
 // codegen.c
 void codegen(Function *prog);
