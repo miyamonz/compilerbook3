@@ -4,12 +4,18 @@ int labelseq = 0;
 char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"}; // https://www.sigbus.info/compilerbook#%E6%95%B4%E6%95%B0%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E4%B8%80%E8%A6%A7
 char *funcname;
 
+void gen(Node *node);
+
 void gen_addr(Node *node)
 {
-    if (node->kind == ND_VAR)
+    switch (node->kind)
     {
+    case ND_VAR:
         printf("  lea rax, [rbp-%d]\n", node->var->offset);
         printf("  push rax\n");
+        return;
+    case ND_DEREF:
+        gen(node->lhs);
         return;
     }
 
@@ -50,6 +56,13 @@ void gen(Node *node)
         gen_addr(node->lhs);
         gen(node->rhs);
         store();
+        return;
+    case ND_ADDR:
+        gen_addr(node->lhs);
+        return;
+    case ND_DEREF:
+        gen(node->lhs);
+        load();
         return;
     case ND_IF:
     {
