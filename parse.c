@@ -88,20 +88,25 @@ Function *program()
     return head.next;
 }
 
+VarList *read_func_param()
+{
+    VarList *vl = calloc(1, sizeof(VarList));
+    vl->var = push_var(expect_ident());
+    return vl;
+}
+
 VarList *read_func_params()
 {
     if (consume(")"))
         return NULL;
 
-    VarList *head = calloc(1, sizeof(VarList));
-    head->var = push_var(expect_ident());
+    VarList *head = read_func_param();
     VarList *cur = head;
 
     while (!consume(")"))
     {
         expect(",");
-        cur->next = calloc(1, sizeof(VarList));
-        cur->next->var = push_var(expect_ident());
+        cur->next = read_func_param();
         cur = cur->next;
     }
 
@@ -109,7 +114,8 @@ VarList *read_func_params()
 }
 
 // function = ident "(" params? ")" "{" stmt* "}"
-// params   = ident ("," ident)*
+// params   = param ("," param)*
+// param    = ident
 Function *function()
 {
     locals = NULL;
