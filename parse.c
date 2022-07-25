@@ -87,16 +87,39 @@ Function *program()
     return head.next;
 }
 
-// function = ident "(" ")" "{" stmt* "}"
+VarList *read_func_params()
+{
+    if (consume(")"))
+        return NULL;
+
+    VarList *head = calloc(1, sizeof(VarList));
+    head->var = push_var(expect_ident());
+    VarList *cur = head;
+
+    while (!consume(")"))
+    {
+        expect(",");
+        cur->next = calloc(1, sizeof(VarList));
+        cur->next->var = push_var(expect_ident());
+        cur = cur->next;
+    }
+
+    return head;
+}
+
+// function = ident "(" params? ")" "{" stmt* "}"
+// params   = ident ("," ident)*
 Function *function()
 {
     locals = NULL;
+    Function *fn = calloc(1, sizeof(Function));
+    fn->name = expect_ident();
 
-    char *name = expect_ident();
     expect("(");
-    expect(")");
+    fn->params = read_func_params();
     expect("{");
 
+    // body
     Node head;
     head.next = NULL;
     Node *cur = &head;
@@ -107,8 +130,6 @@ Function *function()
         cur = cur->next;
     }
 
-    Function *fn = calloc(1, sizeof(Function));
-    fn->name = name;
     fn->node = head.next;
     fn->locals = locals;
 

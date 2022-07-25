@@ -114,6 +114,7 @@ struct Function
 {
     Function *next;
     char *name;
+    VarList *params;
 
     Node *node;
     VarList *locals;
