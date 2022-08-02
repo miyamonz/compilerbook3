@@ -32,6 +32,7 @@ void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 void error_tok(Token *tok, char *fmt, ...);
 char *strndup(char *p, int len);
+Token *peek(char *s);
 Token *consume(char *op);
 Token *consume_ident();
 void expect(char *op);
@@ -53,6 +54,7 @@ typedef struct Var Var;
 struct Var
 {
     char *name; // Variable name
+    Type *ty;   // Type
     int offset; // offset from RBP
 };
 
@@ -86,6 +88,7 @@ typedef enum
     ND_EXPR_STMT, // Expression statement
     ND_VAR,       // variable
     ND_NUM,       // 整数
+    ND_NULL,      // Empty statement
 } NodeKind;
 
 typedef struct Node Node;
@@ -144,6 +147,8 @@ struct Type
     Type *base;
 };
 
+Type *int_type();
+Type *pointer_to(Type *base);
 void add_type(Function *prog);
 
 // codegen.c
