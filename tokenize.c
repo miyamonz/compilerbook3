@@ -53,11 +53,17 @@ char *strndup(char *p, int len)
     return buf;
 }
 
-Token *consume(char *op)
+// Returns true if the current token matches a given string
+Token *peek(char *s)
 {
-    if (token->kind != TK_RESERVED ||
-        strlen(op) != token->len ||
-        memcmp(token->str, op, token->len))
+    if (token->kind != TK_RESERVED || strlen(s) != token->len || memcmp(token->str, s, token->len))
+        return NULL;
+    return token;
+}
+
+Token *consume(char *s)
+{
+    if (!peek(s))
         return NULL;
     Token *t = token;
     token = token->next;
@@ -73,12 +79,11 @@ Token *consume_ident()
     return t;
 }
 
-void expect(char *op)
+void expect(char *s)
 {
-    if (token->kind != TK_RESERVED ||
-        strlen(op) != token->len ||
-        memcmp(token->str, op, token->len))
-        error_tok(token, "'%s'ではありません", op);
+    if (!peek(s))
+        error_tok(token, "expected \"%s\"", s);
+
     token = token->next;
 }
 
