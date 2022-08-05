@@ -443,7 +443,7 @@ Node *add()
     {
         if (tok = consume("+"))
             node = new_binary(ND_ADD, node, mul(), tok);
-        if (tok = consume("-"))
+        else if (tok = consume("-"))
             node = new_binary(ND_SUB, node, mul(), tok);
         else
             return node;
