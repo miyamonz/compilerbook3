@@ -3,16 +3,27 @@
 // Returns the contents of a given file.
 char *read_file(char *path)
 {
-    // Open and read the file.
-    FILE *fp = fopen(path, "r");
-    if (!fp)
-        error("cannot open %s: %s", path, strerror(errno));
+    FILE *fp;
+    if (strcmp(path, "-") == 0)
+    {
+        // By convention, read from stdin if a given filename is "-".
+        fp = stdin;
+    }
+    else
+    {
+        fp = fopen(path, "r");
+        if (!fp)
+            error("cannot open %s: %s", path, strerror(errno));
+    }
 
     int filemax = 10 * 1024 * 1024;
     char *buf = malloc(filemax);
     int size = fread(buf, 1, filemax - 2, fp);
     if (!feof(fp))
         error("%s: file too large");
+
+    if (fp != stdin)
+        fclose(fp);
 
     // Make sure that the string ends with "\n\0".
     if (size == 0 || buf[size - 1] != '\n')

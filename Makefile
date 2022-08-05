@@ -12,8 +12,7 @@ main: $(OBJS)
 $(OBJS): main.h
 
 test/%.exe: main test/%.c
-	$(CC) -o- -E -P -C test/$*.c > /tmp/$*.pre
-	./main /tmp/$*.pre > test/$*.s
+	$(CC) -o- -E -P -C test/$*.c | ./main - > test/$*.s
 	$(CC) -static -o $@ test/$*.s -xc test/common
 
 test: $(TESTS)
