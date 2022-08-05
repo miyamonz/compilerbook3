@@ -1,7 +1,10 @@
 #include "main.h"
 
 int labelseq = 0;
-char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"}; // https://www.sigbus.info/compilerbook#%E6%95%B4%E6%95%B0%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E4%B8%80%E8%A6%A7
+// https://www.sigbus.info/compilerbook#%E6%95%B4%E6%95%B0%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E4%B8%80%E8%A6%A7
+char *argreg1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
+char *argreg8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
 char *funcname;
 
 void gen(Node *node);
@@ -38,18 +41,24 @@ void gen_lval(Node *node)
     gen_addr(node);
 }
 
-void load()
+void load(Type *ty)
 {
     printf("  pop rax\n");
-    printf("  mov rax, [rax]\n");
+    if (size_of(ty) == 1)
+        printf("  movsx rax, byte ptr [rax]\n");
+    else
+        printf("  mov rax, [rax]\n");
     printf("  push rax\n");
 }
 
-void store()
+void store(Type *ty)
 {
     printf("  pop rdi\n");
     printf("  pop rax\n");
-    printf("  mov [rax], rdi\n");
+    if (size_of(ty) == 1)
+        printf("  mov [rax], dil\n");
+    else
+        printf("  mov [rax], rdi\n");
     printf("  push rdi\n");
 }
 
@@ -69,12 +78,12 @@ void gen(Node *node)
     case ND_VAR:
         gen_addr(node);
         if (node->ty->kind != TY_ARRAY)
-            load();
+            load(node->ty);
         return;
     case ND_ASSIGN:
         gen_lval(node->lhs);
         gen(node->rhs);
-        store();
+        store(node->ty);
         return;
     case ND_ADDR:
         gen_addr(node->lhs);
@@ -82,7 +91,7 @@ void gen(Node *node)
     case ND_DEREF:
         gen(node->lhs);
         if (node->ty->kind != TY_ARRAY)
-            load();
+            load(node->ty);
         return;
     case ND_IF:
     {
@@ -159,7 +168,7 @@ void gen(Node *node)
         }
         for (int i = nargs - 1; i >= 0; i--)
         {
-            printf("  pop %s\n", argreg[i]);
+            printf("  pop %s\n", argreg8[i]);
         }
         // We need to align RSP to a 16 byte boundary before
         // calling a function because it is an ABI requirement.
@@ -254,6 +263,20 @@ void emit_data(Program *prog)
     }
 }
 
+void load_arg(Var *var, int idx)
+{
+    int sz = size_of(var->ty);
+    if (sz == 1)
+    {
+        printf("  mov [rbp-%d], %s\n", var->offset, argreg1[idx]);
+    }
+    else
+    {
+        assert(sz == 8);
+        printf("  mov [rbp-%d], %s\n", var->offset, argreg8[idx]);
+    }
+}
+
 void emit_text(Program *prog)
 {
     printf(".text\n");
@@ -272,8 +295,7 @@ void emit_text(Program *prog)
         int i = 0;
         for (VarList *vl = fn->params; vl; vl = vl->next)
         {
-            Var *var = vl->var;
-            printf("  mov [rbp-%d], %s\n", var->offset, argreg[i++]);
+            load_arg(vl->var, i++);
         }
 
         for (Node *n = fn->node; n; n = n->next)

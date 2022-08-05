@@ -136,11 +136,21 @@ Program *program()
     return prog;
 }
 
-// basetype = "int" "*"*
+// basetype = ("char" | "int") "*"*
 Type *basetype()
 {
-    expect("int");
-    Type *ty = int_type();
+    Type *ty;
+    if (consume("char"))
+    {
+        ty = char_type();
+    }
+    else
+    {
+
+        expect("int");
+        ty = int_type();
+    }
+
     while (consume("*"))
         ty = pointer_to(ty);
     return ty;
@@ -185,6 +195,11 @@ VarList *read_func_params()
     return head;
 }
 
+int align_to(int n, int align)
+{
+    return (n + align - 1) & ~(align - 1);
+}
+
 // function = basetype ident "(" params? ")" "{" stmt* "}"
 // params   = param ("," param)*
 // param    = basetype ident
@@ -221,7 +236,7 @@ Function *function()
         offset += size_of(var->ty);
         vl->var->offset = offset;
     }
-    fn->stack_size = offset;
+    fn->stack_size = align_to(offset, 8);
 
     return fn;
 }
@@ -260,6 +275,11 @@ Node *read_expr_stmt()
 {
     Token *tok = token;
     return new_unary(ND_EXPR_STMT, expr(), tok);
+}
+
+bool is_typename()
+{
+    return peek("char") || peek("int");
 }
 
 // stmt = "return" expr ";"
@@ -343,7 +363,7 @@ Node *stmt()
         return node;
     }
 
-    if (tok = peek("int"))
+    if (is_typename())
         return declaration();
 
     Node *node = read_expr_stmt();
