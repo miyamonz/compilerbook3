@@ -101,6 +101,7 @@ typedef enum
     ND_BLOCK,     // {...}
     ND_FUNCALL,   // Function call
     ND_EXPR_STMT, // Expression statement
+    ND_STMT_EXPR, // Statement expression
     ND_VAR,       // variable
     ND_NUM,       // 整数
     ND_NULL,      // Empty statement
@@ -125,7 +126,7 @@ struct Node
     Node *init;
     Node *inc;
 
-    // Block
+    // Block or statement expression
     Node *body;
 
     // Function call

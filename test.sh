@@ -169,4 +169,9 @@ STATIC=1 assert 99 'int main() { return "abc"[2]; }'
 STATIC=1 assert 0 'int main() { return "abc"[3]; }'
 STATIC=1 assert 4 'int main() { return sizeof("abc"); }'
 
+assert 0 'int main() { return ({ 0; }); }'
+assert 2 'int main() { return ({ 0; 1; 2; }); }'
+assert 1 'int main() { ({ 0; return 1; 2; }); return 3; }'
+assert 3 'int main() { return ({ int x=3; x; }); }'
+
 echo OK
