@@ -14,6 +14,7 @@ typedef enum
 {
     TK_RESERVED, // Keywords or punctuators
     TK_IDENT,    // Identifiers
+    TK_STR,      // String literals
     TK_NUM,      // Interger Literals
     TK_EOF,      // End-of-file markers
 } TokenKind;
@@ -28,6 +29,9 @@ struct Token
     int val;  // only used when TK_NUM
     char *str;
     int len;
+
+    char *contents; // String literal contents including terminating '\0'
+    char cont_len;  // String literal length
 };
 
 void error(char *fmt, ...);
@@ -62,6 +66,10 @@ struct Var
 
     // Local variable
     int offset; // offset from RBP
+
+    // Global variable
+    char *contents;
+    int cont_len;
 };
 
 typedef struct VarList VarList;
