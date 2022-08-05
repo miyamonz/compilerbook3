@@ -437,9 +437,11 @@ Node *func_args()
     return head;
 }
 
-// primary = "(" expr ")" | ident func-args? | num
+// primary = "(" expr ")" | "sizeof" unary | ident func-args? | num
 Node *primary()
 {
+    Token *tok;
+
     if (consume("("))
     {
         Node *node = expr();
@@ -447,7 +449,9 @@ Node *primary()
         return node;
     }
 
-    Token *tok;
+    if (tok = consume("sizeof"))
+        return new_unary(ND_SIZEOF, unary(), tok);
+
     if (tok = consume_ident())
     {
         // function call
