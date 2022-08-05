@@ -4,3 +4,5 @@ tmp*
 a.out
 main
 .vscode/*.log
+test/*.s
+test/*.exe
