@@ -279,6 +279,15 @@ int test_struct()
     // align struct members
     ASSERT(16, ({ struct {char a; int b;} x; sizeof(x); }));
     ASSERT(16, ({ struct {int a; char b;} x; sizeof(x); }));
+
+    // int x; char y;
+    // |------|
+    // xxxx,,,y
+    ASSERT(15, ({ int x; char y; int a=&x; int b=&y; b-a; }));
+    // char x; int y;
+    //    ||
+    // ,,,xyyyy
+    ASSERT(1, ({ char x; int y; int a=&x; int b=&y; b-a; }));
     printf("OK");
     return 0;
 }
