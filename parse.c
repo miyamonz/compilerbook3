@@ -198,8 +198,13 @@ Type *struct_decl()
     int offset = 0;
     for (Member *mem = ty->members; mem; mem = mem->next)
     {
+        offset = align_to(offset, mem->ty->align);
         mem->offset = offset;
         offset += size_of(mem->ty);
+
+        // structのalignは、memberのalignの最大値とする
+        if (ty->align < mem->ty->align)
+            ty->align = mem->ty->align;
     }
 
     return ty;
@@ -243,11 +248,6 @@ VarList *read_func_params()
     }
 
     return head;
-}
-
-int align_to(int n, int align)
-{
-    return (n + align - 1) & ~(align - 1);
 }
 
 // function = basetype ident "(" params? ")" "{" stmt* "}"
