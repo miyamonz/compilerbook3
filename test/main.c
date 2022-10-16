@@ -1,5 +1,12 @@
 #define ASSERT(x, y) assert(x, y, #y)
 
+int gg2;
+int *gg2_ptr()
+{
+    gg2 = 3;
+    return &gg2;
+}
+
 int main()
 {
     test_arith();
@@ -15,6 +22,8 @@ int main()
     ASSERT(8, ({ int (*x)[3]; sizeof(x); }));
     ASSERT(3, ({ int *x[3]; int y; x[0]=&y; y=3; x[0][0]; }));
     ASSERT(4, ({ int x[3]; int (*y)[3]=x; y[0][0]=4; y[0][0]; }));
+
+    ASSERT(3, *gg2_ptr());
 
     return 0;
 }
