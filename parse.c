@@ -137,7 +137,8 @@ char *new_label()
 }
 
 Function *function();
-Type *basetype();
+Type *type_specifier();
+Type *declarator();
 Type *struct_decl();
 Member *struct_member();
 void global_var();
@@ -157,8 +158,12 @@ Node *primary();
 bool is_function()
 {
     Token *tok = token;
-    basetype();
-    bool isfunc = consume_ident() && consume("(");
+
+    Type *ty = type_specifier();
+    char *name = NULL;
+    declarator(ty, &name);
+    bool isfunc = name && consume("(");
+
     token = tok;
     return isfunc;
 }
@@ -190,30 +195,34 @@ Program *program()
     return prog;
 }
 
-// basetype = type "*"*
-// type = "char" | "short" | "long" | "int" | struct-decl | typedef-name
-Type *basetype()
+// type-specifier = builtin-type | struct-decl | typedef-name
+// builtin-type = "char" | "short" | "long" | "int" |
+Type *type_specifier()
 {
     if (!is_typename())
         error_tok(token, "token expected");
 
-    Type *ty;
     if (consume("char"))
-        ty = char_type();
+        return char_type();
     else if (consume("short"))
-        ty = short_type();
+        return short_type();
     else if (consume("int"))
-        ty = int_type();
+        return int_type();
     else if (consume("long"))
-        ty = long_type();
+        return long_type();
     else if (consume("struct"))
-        ty = struct_decl();
+        return struct_decl();
     else
-        ty = find_var(consume_ident())->type_def;
-    assert(ty);
+        return find_var(consume_ident())->type_def;
+}
 
+// declarator = "*"*
+Type *declarator(Type *ty, char **name)
+{
     while (consume("*"))
         ty = pointer_to(ty);
+
+    *name = expect_ident();
     return ty;
 }
 
@@ -286,21 +295,26 @@ Type *struct_decl()
     return ty;
 }
 
-// struct-member = basetype ident type-suffix ";"
+// struct-member = type-specifier declarator type-suffix ";"
 Member *struct_member()
 {
+    Type *ty = type_specifier();
+    char *name = NULL;
+    ty = declarator(ty, &name);
+    ty = type_suffix(ty);
+
     Member *mem = calloc(1, sizeof(Member));
-    mem->ty = basetype();
-    mem->name = expect_ident();
-    mem->ty = type_suffix(mem->ty);
+    mem->name = name;
+    mem->ty = ty;
     expect(";");
     return mem;
 }
 
 VarList *read_func_param()
 {
-    Type *ty = basetype();
-    char *name = expect_ident();
+    Type *ty = type_specifier();
+    char *name = NULL;
+    ty = declarator(ty, &name);
     ty = type_suffix(ty);
 
     VarList *vl = calloc(1, sizeof(VarList));
@@ -326,15 +340,18 @@ VarList *read_func_params()
     return head;
 }
 
-// function = basetype ident "(" params? ")" "{" stmt* "}"
+// function = type-specifier declarator "(" params? ")" "{" stmt* "}"
 // params   = param ("," param)*
-// param    = basetype ident
+// param    = type-specifier declarator
 Function *function()
 {
     locals = NULL;
+    Type *ty = type_specifier();
+    char *name = NULL;
+    declarator(ty, &name);
+
     Function *fn = calloc(1, sizeof(Function));
-    basetype();
-    fn->name = expect_ident();
+    fn->name = name;
 
     expect("(");
     fn->params = read_func_params();
@@ -368,26 +385,28 @@ Function *function()
     return fn;
 }
 
-// global-var = basetype ident type-suffix ";"
+// global-var = type-specifier declarator type-suffix ";"
 void global_var()
 {
-    Type *ty = basetype();
-    char *name = expect_ident();
+    Type *ty = type_specifier();
+    char *name = NULL;
+    ty = declarator(ty, &name);
     ty = type_suffix(ty);
     expect(";");
     push_var(name, ty, false);
 }
 
-// declaration = basetype ident type-suffix ("=" expr) ";"
-//             | basetype ";"
+// declaration = type-specifier declarator type-suffix ("=" expr) ";"
+//             | type-specifier ";"
 Node *declaration()
 {
     Token *tok = token;
-    Type *ty = basetype();
+    Type *ty = type_specifier();
     if (consume(";"))
         return new_node(ND_NULL, tok);
 
-    char *name = expect_ident();
+    char *name = NULL;
+    ty = declarator(ty, &name);
     ty = type_suffix(ty);
     Var *var = push_var(name, ty, true);
 
@@ -419,7 +438,7 @@ bool is_typename()
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //        | "{" stmt* "}"
-//        | "typedef" basetype ident type-suffix ";"
+//        | "typedef" type-specifier declarator type-suffix ";"
 //        | declaration
 //        | expr ";"
 Node *stmt()
@@ -504,8 +523,9 @@ Node *stmt()
 
     if (tok = consume("typedef"))
     {
-        Type *ty = basetype();
-        char *name = expect_ident();
+        Type *ty = type_specifier();
+        char *name = NULL;
+        ty = declarator(ty, &name);
         ty = type_suffix(ty);
         expect(";");
         push_scope(name)->type_def = ty;
