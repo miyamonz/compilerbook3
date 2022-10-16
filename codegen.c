@@ -3,6 +3,7 @@
 int labelseq = 0;
 // https://www.sigbus.info/compilerbook#%E6%95%B4%E6%95%B0%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E4%B8%80%E8%A6%A7
 char *argreg1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
+char *argreg2[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
 char *argreg4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 char *argreg8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
@@ -55,6 +56,10 @@ void load(Type *ty)
     int sz = size_of(ty);
     if (sz == 1)
         printf("  movsx rax, byte ptr [rax]\n");
+    else if (sz == 2)
+    {
+        printf("  movsx rax, word ptr [rax]\n");
+    }
     else if (sz == 4)
     {
         printf("  movsx rax, dword ptr [rax]\n");
@@ -74,6 +79,10 @@ void store(Type *ty)
     int sz = size_of(ty);
     if (sz == 1)
         printf("  mov [rax], dil\n");
+    else if (sz == 2)
+    {
+        printf("  mov [rax], di\n");
+    }
     else if (sz == 4)
     {
         printf("  mov [rax], edi\n");
@@ -302,6 +311,10 @@ void load_arg(Var *var, int idx)
     if (sz == 1)
     {
         printf("  mov [rbp-%d], %s\n", var->offset, argreg1[idx]);
+    }
+    else if (sz == 2)
+    {
+        printf("  mov [rbp-%d], %s\n", var->offset, argreg2[idx]);
     }
     else if (sz == 4)
     {

@@ -9,6 +9,7 @@ int main()
     test_string();
     test_variable();
     test_struct();
+    test_type();
 }
 
 int test_arith()
@@ -303,6 +304,29 @@ int test_struct()
 
     ASSERT(8, ({ struct t {int a; int b;} x; struct t y; sizeof(y); }));
     ASSERT(8, ({ struct t {int a; int b;}; struct t y; sizeof(y); }));
+    printf("OK");
+    return 0;
+}
+
+int sub_short(short a, short b, short c)
+{
+    return a - b - c;
+}
+int sub_long(long a, long b, long c)
+{
+    return a - b - c;
+}
+int test_type()
+{
+    ASSERT(2, ({ short x; sizeof(x); }));
+    ASSERT(4, ({ struct {char a; short b;} x; sizeof(x); }));
+
+    ASSERT(8, ({ long x; sizeof(x); }));
+    ASSERT(16, ({ struct {char a; long b;} x; sizeof(x); }));
+
+    ASSERT(1, sub_short(7, 3, 3));
+    ASSERT(1, sub_long(7, 3, 3));
+
     printf("OK");
     return 0;
 }
