@@ -212,19 +212,19 @@ int test_variable()
     ASSERT(3, ({ int foo=3; foo; }));
     ASSERT(8, ({ int foo123=3; int bar=5; foo123+bar; }));
 
-    ASSERT(8, ({ int x; sizeof(x); }));
-    ASSERT(8, ({ int x; sizeof x; }));
+    ASSERT(4, ({ int x; sizeof(x); }));
+    ASSERT(4, ({ int x; sizeof x; }));
     ASSERT(8, ({ int *x; sizeof(x); }));
 
-    ASSERT(32, ({ int x[4]; sizeof(x); }));
-    ASSERT(96, ({ int x[3][4]; sizeof(x); }));
-    ASSERT(32, ({ int x[3][4]; sizeof(*x); }));
-    ASSERT(8, ({ int x[3][4]; sizeof(**x); }));
-    ASSERT(9, ({ int x[3][4]; sizeof(**x) + 1; }));
-    ASSERT(9, ({ int x[3][4]; sizeof **x + 1; }));
-    ASSERT(8, ({ int x[3][4]; sizeof(**x + 1); }));
+    ASSERT(16, ({ int x[4]; sizeof(x); }));
+    ASSERT(48, ({ int x[3][4]; sizeof(x); }));
+    ASSERT(16, ({ int x[3][4]; sizeof(*x); }));
+    ASSERT(4, ({ int x[3][4]; sizeof(**x); }));
+    ASSERT(5, ({ int x[3][4]; sizeof(**x) + 1; }));
+    ASSERT(5, ({ int x[3][4]; sizeof **x + 1; }));
+    ASSERT(4, ({ int x[3][4]; sizeof(**x + 1); }));
 
-    ASSERT(8, ({ int x=1; sizeof(x=2); }));
+    ASSERT(4, ({ int x=1; sizeof(x=2); }));
     ASSERT(1, ({ int x=1; sizeof(x=2); x; }));
 
     ASSERT(0, g1);
@@ -234,8 +234,8 @@ int test_variable()
     ASSERT(2, ({ g2[0]=0; g2[1]=1; g2[2]=2; g2[3]=3; g2[2]; }));
     ASSERT(3, ({ g2[0]=0; g2[1]=1; g2[2]=2; g2[3]=3; g2[3]; }));
 
-    ASSERT(8, sizeof(g1));
-    ASSERT(32, sizeof(g2));
+    ASSERT(4, sizeof(g1));
+    ASSERT(16, sizeof(g2));
 
     ASSERT(1, ({ char x=1; x; }));
     ASSERT(1, ({ char x=1; char y=2; x; }));
@@ -270,27 +270,25 @@ int test_struct()
 
     ASSERT(6, ({ struct { struct { int b; } a; } x; x.a.b=6; x.a.b; }));
 
-    ASSERT(8, ({ struct {int a;} x; sizeof(x); }));
-    ASSERT(16, ({ struct {int a; int b;} x; sizeof(x); }));
-    ASSERT(24, ({ struct {int a[3];} x; sizeof(x); }));
-    ASSERT(32, ({ struct {int a;} x[4]; sizeof(x); }));
-    ASSERT(48, ({ struct {int a[3];} x[2]; sizeof(x); }));
+    ASSERT(4, ({ struct {int a;} x; sizeof(x); }));
+    ASSERT(8, ({ struct {int a; int b;} x; sizeof(x); }));
+    ASSERT(12, ({ struct {int a[3];} x; sizeof(x); }));
+    ASSERT(16, ({ struct {int a;} x[4]; sizeof(x); }));
+    ASSERT(24, ({ struct {int a[3];} x[2]; sizeof(x); }));
     ASSERT(2, ({ struct {char a; char b;} x; sizeof(x); }));
     // align struct members
-    ASSERT(16, ({ struct {char a; int b;} x; sizeof(x); }));
-    ASSERT(16, ({ struct {int a; char b;} x; sizeof(x); }));
+    ASSERT(8, ({ struct {char a; int b;} x; sizeof(x); }));
+    ASSERT(8, ({ struct {int a; char b;} x; sizeof(x); }));
 
     // int x; char y;
     // |------|
     // xxxx,,,y
-    ASSERT(15, ({ int x; char y; int a=&x; int b=&y; b-a; }));
+    ASSERT(7, ({ int x; char y; int a=&x; int b=&y; b-a; }));
     // char x; int y;
     //    ||
     // ,,,xyyyy
     ASSERT(1, ({ char x; int y; int a=&x; int b=&y; b-a; }));
 
-    ASSERT(16, ({ struct t {int a; int b;} x; struct t y; sizeof(y); }));
-    ASSERT(16, ({ struct t {int a; int b;}; struct t y; sizeof(y); }));
     ASSERT(2, ({ struct t {char a[2];}; { struct t {char a[4];}; } struct t y; sizeof(y); }));
     ASSERT(3, ({ struct t {int x;}; int t=1; struct t y; y.x=2; t+y.x; }));
 
@@ -302,6 +300,9 @@ int test_struct()
     ASSERT(1, ({ typedef struct {int a;} t; t x; x.a=1; x.a; }));
     ASSERT(1, ({ typedef int t; t t=1; t; }));
     ASSERT(2, ({ typedef struct {int a;} t; { typedef int t; } t x; x.a=2; x.a; }));
+
+    ASSERT(8, ({ struct t {int a; int b;} x; struct t y; sizeof(y); }));
+    ASSERT(8, ({ struct t {int a; int b;}; struct t y; sizeof(y); }));
     printf("OK");
     return 0;
 }
