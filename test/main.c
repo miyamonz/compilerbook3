@@ -298,6 +298,10 @@ int test_struct()
     ASSERT(3, ({ struct t {char a;} x; struct t *y = &x; x.a=3; y->a; }));
     ASSERT(3, ({ struct t {char a;} x; struct t *y = &x; y->a=3; x.a; }));
 
+    ASSERT(1, ({ typedef int t; t x=1; x; }));
+    ASSERT(1, ({ typedef struct {int a;} t; t x; x.a=1; x.a; }));
+    ASSERT(1, ({ typedef int t; t t=1; t; }));
+    ASSERT(2, ({ typedef struct {int a;} t; { typedef int t; } t x; x.a=2; x.a; }));
     printf("OK");
     return 0;
 }
