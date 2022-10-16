@@ -10,6 +10,13 @@ int main()
     test_variable();
     test_struct();
     test_type();
+
+    ASSERT(24, ({ int *x[3]; sizeof(x); }));
+    ASSERT(8, ({ int (*x)[3]; sizeof(x); }));
+    ASSERT(3, ({ int *x[3]; int y; x[0]=&y; y=3; x[0][0]; }));
+    ASSERT(4, ({ int x[3]; int (*y)[3]=x; y[0][0]=4; y[0][0]; }));
+
+    return 0;
 }
 
 int test_arith()

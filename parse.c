@@ -139,6 +139,7 @@ char *new_label()
 Function *function();
 Type *type_specifier();
 Type *declarator();
+Type *type_suffix();
 Type *struct_decl();
 Member *struct_member();
 void global_var();
@@ -216,14 +217,23 @@ Type *type_specifier()
         return find_var(consume_ident())->type_def;
 }
 
-// declarator = "*"*
+// declarator = "*"* ("(" declarator ")" | ident) type-suffix
 Type *declarator(Type *ty, char **name)
 {
     while (consume("*"))
         ty = pointer_to(ty);
 
+    if (consume("("))
+    {
+        Type *placeholder = calloc(1, sizeof(Type));
+        Type *new_ty = declarator(placeholder, name);
+        expect(")");
+        *placeholder = *type_suffix(ty);
+        return new_ty;
+    }
+
     *name = expect_ident();
-    return ty;
+    return type_suffix(ty);
 }
 
 // type-suffix = ("[" num "]" type-suffix)?
