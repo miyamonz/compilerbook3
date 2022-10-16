@@ -217,13 +217,14 @@ Type *basetype()
     return ty;
 }
 
-Type *read_type_suffix(Type *base)
+// type-suffix = ("[" num "]" type-suffix)?
+Type *type_suffix(Type *base)
 {
     if (!consume("["))
         return base;
     int sz = expect_number();
     expect("]");
-    base = read_type_suffix(base);
+    base = type_suffix(base);
     return array_of(base, sz);
 }
 
@@ -285,13 +286,13 @@ Type *struct_decl()
     return ty;
 }
 
-// struct-member = basetype ident ("[" num "]")* ";"
+// struct-member = basetype ident type-suffix ";"
 Member *struct_member()
 {
     Member *mem = calloc(1, sizeof(Member));
     mem->ty = basetype();
     mem->name = expect_ident();
-    mem->ty = read_type_suffix(mem->ty);
+    mem->ty = type_suffix(mem->ty);
     expect(";");
     return mem;
 }
@@ -300,7 +301,7 @@ VarList *read_func_param()
 {
     Type *ty = basetype();
     char *name = expect_ident();
-    ty = read_type_suffix(ty);
+    ty = type_suffix(ty);
 
     VarList *vl = calloc(1, sizeof(VarList));
     vl->var = push_var(name, ty, true);
@@ -367,17 +368,17 @@ Function *function()
     return fn;
 }
 
-// global-var = basetype ident ("[" num "]")* ";"
+// global-var = basetype ident type-suffix ";"
 void global_var()
 {
     Type *ty = basetype();
     char *name = expect_ident();
-    ty = read_type_suffix(ty);
+    ty = type_suffix(ty);
     expect(";");
     push_var(name, ty, false);
 }
 
-// declaration = basetype ident ("[" num "]")* ("=" expr) ";"
+// declaration = basetype ident type-suffix ("=" expr) ";"
 //             | basetype ";"
 Node *declaration()
 {
@@ -387,7 +388,7 @@ Node *declaration()
         return new_node(ND_NULL, tok);
 
     char *name = expect_ident();
-    ty = read_type_suffix(ty);
+    ty = type_suffix(ty);
     Var *var = push_var(name, ty, true);
 
     if (consume(";"))
@@ -418,7 +419,7 @@ bool is_typename()
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //        | "{" stmt* "}"
-//        | "typedef" basetype ident ("[" num "]")* ";"
+//        | "typedef" basetype ident type-suffix ";"
 //        | declaration
 //        | expr ";"
 Node *stmt()
@@ -505,7 +506,7 @@ Node *stmt()
     {
         Type *ty = basetype();
         char *name = expect_ident();
-        ty = read_type_suffix(ty);
+        ty = type_suffix(ty);
         expect(";");
         push_scope(name)->type_def = ty;
         return new_node(ND_NULL, tok);
