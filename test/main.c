@@ -25,7 +25,14 @@ int main()
 
     ASSERT(3, *gg2_ptr());
 
-    { void *x; }
+    {
+        void *x;
+    }
+
+    ASSERT(0, ({ _Bool x=0; x; }));
+    ASSERT(1, ({ _Bool x=1; x; }));
+    ASSERT(1, ({ _Bool x=2; x; }));
+
     return 0;
 }
 

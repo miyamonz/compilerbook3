@@ -215,6 +215,8 @@ Type *type_specifier()
         return struct_decl();
     else if (consume("void"))
         return void_type();
+    else if (consume("_Bool"))
+        return bool_type();
     else
         return find_var(consume_ident())->type_def;
 }
@@ -446,7 +448,7 @@ Node *read_expr_stmt()
 bool is_typename()
 {
     return peek("char") || peek("short") || peek("int") || peek("long") ||
-           peek("struct") || peek("void") || find_typedef(token);
+           peek("struct") || peek("void") || peek("_Bool") || find_typedef(token);
 }
 
 // stmt = "return" expr ";"
