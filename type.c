@@ -12,7 +12,10 @@ Type *new_type(TypeKind kind, int align)
     ty->align = align;
     return ty;
 }
-
+Type *void_type()
+{
+    return new_type(TY_VOID, 1);
+}
 Type *char_type()
 {
     return new_type(TY_CHAR, 1);

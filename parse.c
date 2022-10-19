@@ -197,7 +197,7 @@ Program *program()
 }
 
 // type-specifier = builtin-type | struct-decl | typedef-name
-// builtin-type = "char" | "short" | "long" | "int" |
+// builtin-type = "char" | "short" | "long" | "int" | "void"
 Type *type_specifier()
 {
     if (!is_typename())
@@ -213,6 +213,8 @@ Type *type_specifier()
         return long_type();
     else if (consume("struct"))
         return struct_decl();
+    else if (consume("void"))
+        return void_type();
     else
         return find_var(consume_ident())->type_def;
 }
@@ -444,7 +446,7 @@ Node *read_expr_stmt()
 bool is_typename()
 {
     return peek("char") || peek("short") || peek("int") || peek("long") ||
-           peek("struct") || find_typedef(token);
+           peek("struct") || peek("void") || find_typedef(token);
 }
 
 // stmt = "return" expr ";"

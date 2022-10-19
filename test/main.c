@@ -25,6 +25,7 @@ int main()
 
     ASSERT(3, *gg2_ptr());
 
+    { void *x; }
     return 0;
 }
 
