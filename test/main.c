@@ -75,6 +75,9 @@ int main()
     ASSERT(0, (long)&*(int *)0);
     ASSERT(5, ({ int x=5; long y=(long)&x; *(int*)y; }));
 
+    ASSERT(97, 'a');
+    ASSERT(10, '\n');
+
     return 0;
 }
 
