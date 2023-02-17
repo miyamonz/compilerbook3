@@ -2,15 +2,15 @@
 #include <stdlib.h>
 
 // printfやexitを使うため、このファイルだけgccでコンパイルして、自前のコンパイラの結果とリンクして使う
-void assert(int expected, int actual, char *code)
+void assert(long expected, long actual, char *code)
 {
   if (expected == actual)
   {
-    printf("%s => %d\n", code, actual);
+    printf("%s => %ld\n", code, actual);
   }
   else
   {
-    printf("%s => %d expected but got %d\n", code, expected, actual);
+    printf("%s => %ld expected but got %ld\n", code, expected, actual);
     exit(1);
   }
 }

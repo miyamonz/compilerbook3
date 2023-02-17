@@ -58,6 +58,10 @@ int main()
     ASSERT(16, sizeof(int[4]));
     ASSERT(48, sizeof(int[3][4]));
 
+    ASSERT(4, sizeof(0));
+    ASSERT(4294967297, 4294967297); // 修正前では1になるが、コンパイラがどっちも1としてpassしちゃうという細かい話がある
+    ASSERT(8, sizeof(4294967297));
+
     return 0;
 }
 

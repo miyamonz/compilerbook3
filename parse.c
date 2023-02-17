@@ -68,7 +68,7 @@ Node *new_unary(NodeKind kind, Node *lhs, Token *tok)
     return node;
 }
 
-Node *new_node_num(int val, Token *tok)
+Node *new_node_num(long val, Token *tok)
 {
     Node *node = new_node(ND_NUM, tok);
     node->val = val;

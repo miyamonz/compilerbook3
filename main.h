@@ -27,7 +27,7 @@ struct Token
     TokenKind kind;
     Token *next;
     Type *ty; // Type, e.g. int or pointer to int
-    int val;  // only used when TK_NUM
+    long val; // only used when TK_NUM
     char *str;
     int len;
 
@@ -43,7 +43,7 @@ Token *peek(char *s);
 Token *consume(char *op);
 Token *consume_ident();
 void expect(char *op);
-int expect_number();
+long expect_number();
 char *expect_ident();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
@@ -140,7 +140,7 @@ struct Node
     Node *args;
 
     Var *var; // Used if kind == ND_VAR
-    int val;  // Used if kind == ND_NUM
+    long val; // Used if kind == ND_NUM
 };
 
 typedef struct Function Function;
