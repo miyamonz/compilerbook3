@@ -200,8 +200,8 @@ Program *program()
 // builtin-type   = "void"
 //                | "_Bool"
 //                | "char"
-//                | "short"
-//                | "long"
+//                | "short" | "short" "int" | "int" "short"
+//                | "long" | "long" "int" | "int" "long"
 //                | "int"
 // Note that "typedef" can appear anywhere in a type-specifier.
 Type *type_specifier()
@@ -211,30 +211,86 @@ Type *type_specifier()
 
     bool is_typedef = false;
     Type *ty = NULL;
-
-    if (consume("typedef"))
-        is_typedef = true;
-
-    if (consume("void"))
-        ty = void_type();
-    else if (consume("_Bool"))
-        ty = bool_type();
-    else if (consume("char"))
-        ty = char_type();
-    else if (consume("short"))
-        ty = short_type();
-    else if (consume("long"))
-        ty = long_type();
-    else if (consume("int"))
-        ty = int_type();
-    else if (peek("struct"))
-        ty = struct_decl();
-    else
+    enum
     {
-        ty = find_typedef(consume_ident());
+        VOID = 1 << 1,
+        BOOL = 1 << 3,
+        CHAR = 1 << 5,
+        SHORT = 1 << 7,
+        INT = 1 << 9,
+        LONG = 1 << 11,
+    };
+    int base_type = 0;
+    Type *user_type = NULL;
+
+    for (;;)
+    {
+        Token *tok = token;
+
+        if (consume("typedef"))
+            is_typedef = true;
+        else if (consume("void"))
+            base_type += VOID;
+        else if (consume("_Bool"))
+            base_type += BOOL;
+        else if (consume("char"))
+            base_type += CHAR;
+        else if (consume("short"))
+            base_type += SHORT;
+        else if (consume("long"))
+            base_type += LONG;
+        else if (consume("int"))
+            base_type += INT;
+        else if (peek("struct"))
+        {
+            if (base_type || user_type)
+                break;
+            user_type = struct_decl();
+        }
+        else
+        {
+            if (base_type || user_type)
+                break;
+            Type *found = find_typedef(token);
+            if (!found)
+                break;
+            token = token->next;
+            user_type = found;
+        }
+
+        switch (base_type)
+        {
+        case VOID:
+            ty = void_type();
+            break;
+        case BOOL:
+            ty = bool_type();
+            break;
+        case CHAR:
+            ty = char_type();
+            break;
+        case SHORT:
+        case SHORT + INT:
+            ty = short_type();
+            break;
+        case INT:
+            ty = int_type();
+            break;
+        case LONG:
+        case LONG + INT:
+            ty = long_type();
+            break;
+        case 0:
+            // If there's no type specifier, it becomes int.
+            // For example, `typedef x` defines x as an alias for int.
+            ty = user_type ? user_type : int_type();
+            break;
+        default:
+            error_tok(tok, "invalid type");
+        }
     }
-    if (is_typedef)
-        ty->is_typedef = is_typedef;
+
+    ty->is_typedef = is_typedef;
     return ty;
 }
 
