@@ -103,6 +103,34 @@ void store(Type *ty)
     printf("  push rdi\n");
 }
 
+void truncate(Type *ty)
+{
+    printf("  pop rax\n");
+
+    if (ty->kind == TY_BOOL)
+    {
+        // 0より多ければ1とする
+        printf("  cmp rax, 0\n");
+        printf("  setne al\n");
+    }
+
+    // https://www.sigbus.info/compilerbook#:~:text=%E3%82%B3%E3%83%A9%E3%83%A0%3A%208%E3%83%93%E3%83%83%E3%83%88%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%A832%E3%83%93%E3%83%83%E3%83%88%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E9%81%95%E3%81%84
+    int sz = size_of(ty);
+    if (sz == 1)
+    {
+        printf("  movsx rax, al\n");
+    }
+    else if (sz == 2)
+    {
+        printf("  movsx rax, ax\n");
+    }
+    else if (sz == 4)
+    {
+        printf("  movsxd rax, eax\n");
+    }
+    printf("  push rax\n");
+}
+
 void gen(Node *node)
 {
     switch (node->kind)
@@ -246,6 +274,10 @@ void gen(Node *node)
         gen(node->lhs);
         printf("  pop rax\n");
         printf("  jmp .Lreturn.%s\n", funcname);
+        return;
+    case ND_CAST:
+        gen(node->lhs);
+        truncate(node->ty);
         return;
     }
 

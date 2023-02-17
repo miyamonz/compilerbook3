@@ -62,6 +62,19 @@ int main()
     ASSERT(4294967297, 4294967297); // 修正前では1になるが、コンパイラがどっちも1としてpassしちゃうという細かい話がある
     ASSERT(8, sizeof(4294967297));
 
+    // 8590066177 = 0x200020201
+    // 513          0x      201
+    // 131585     = 0x    20201
+    ASSERT(131585, (int)8590066177);
+    ASSERT(513, (short)8590066177);
+    ASSERT(1, (char)8590066177);
+    ASSERT(1, (_Bool)1);
+    ASSERT(1, (_Bool)2);
+    ASSERT(0, (_Bool)(char)256);
+    ASSERT(1, (long)1);
+    ASSERT(0, (long)&*(int *)0);
+    ASSERT(5, ({ int x=5; long y=(long)&x; *(int*)y; }));
+
     return 0;
 }
 
