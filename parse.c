@@ -197,28 +197,34 @@ Program *program()
 }
 
 // type-specifier = builtin-type | struct-decl | typedef-name
-// builtin-type = "char" | "short" | "long" | "int" | "void"
+// builtin-type   = "void"
+//                | "_Bool"
+//                | "char"
+//                | "short"
+//                | "long"
+//                | "int"
 Type *type_specifier()
 {
     if (!is_typename())
         error_tok(token, "token expected");
 
+    if (consume("void"))
+        return void_type();
+    if (consume("_Bool"))
+        return bool_type();
     if (consume("char"))
         return char_type();
-    else if (consume("short"))
+    if (consume("short"))
         return short_type();
-    else if (consume("int"))
-        return int_type();
-    else if (consume("long"))
+    if (consume("long"))
         return long_type();
-    else if (consume("struct"))
+    if (consume("int"))
+        return int_type();
+
+    if (consume("struct"))
         return struct_decl();
-    else if (consume("void"))
-        return void_type();
-    else if (consume("_Bool"))
-        return bool_type();
-    else
-        return find_var(consume_ident())->type_def;
+
+    return find_var(consume_ident())->type_def;
 }
 
 // declarator = "*"* ("(" declarator ")" | ident) type-suffix
