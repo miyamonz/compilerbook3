@@ -121,7 +121,7 @@ Type *find_typedef(Token *tok)
 {
     if (tok->kind == TK_IDENT)
     {
-        VarScope *sc = find_var(token);
+        VarScope *sc = find_var(tok);
         if (sc)
             return sc->type_def;
     }
@@ -203,28 +203,39 @@ Program *program()
 //                | "short"
 //                | "long"
 //                | "int"
+// Note that "typedef" can appear anywhere in a type-specifier.
 Type *type_specifier()
 {
     if (!is_typename())
         error_tok(token, "token expected");
 
+    bool is_typedef = false;
+    Type *ty = NULL;
+
+    if (consume("typedef"))
+        is_typedef = true;
+
     if (consume("void"))
-        return void_type();
-    if (consume("_Bool"))
-        return bool_type();
-    if (consume("char"))
-        return char_type();
-    if (consume("short"))
-        return short_type();
-    if (consume("long"))
-        return long_type();
-    if (consume("int"))
-        return int_type();
-
-    if (consume("struct"))
-        return struct_decl();
-
-    return find_var(consume_ident())->type_def;
+        ty = void_type();
+    else if (consume("_Bool"))
+        ty = bool_type();
+    else if (consume("char"))
+        ty = char_type();
+    else if (consume("short"))
+        ty = short_type();
+    else if (consume("long"))
+        ty = long_type();
+    else if (consume("int"))
+        ty = int_type();
+    else if (peek("struct"))
+        ty = struct_decl();
+    else
+    {
+        ty = find_typedef(consume_ident());
+    }
+    if (is_typedef)
+        ty->is_typedef = is_typedef;
+    return ty;
 }
 
 // declarator = "*"* ("(" declarator ")" | ident) type-suffix
@@ -270,6 +281,7 @@ void push_tag_scope(Token *tok, Type *ty)
 //             | "struct" ident? "{" struct-member "}"
 Type *struct_decl()
 {
+    expect("struct");
     // Read a struct tag.
     Token *tag = consume_ident();
     if (tag && !peek("{"))
@@ -432,6 +444,15 @@ Node *declaration()
     char *name = NULL;
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
+
+    if (ty->is_typedef)
+    {
+        expect(";");
+        ty->is_typedef = false;
+        push_scope(name)->type_def = ty;
+        return new_node(ND_NULL, tok);
+    }
+
     Var *var = push_var(name, ty, true);
 
     if (consume(";"))
@@ -453,8 +474,8 @@ Node *read_expr_stmt()
 
 bool is_typename()
 {
-    return peek("char") || peek("short") || peek("int") || peek("long") ||
-           peek("struct") || peek("void") || peek("_Bool") || find_typedef(token);
+    return peek("void") || peek("_Bool") || peek("char") || peek("short") || peek("int") || peek("long") ||
+           peek("struct") || peek("typedef") || find_typedef(token);
 }
 
 // stmt = "return" expr ";"
@@ -543,17 +564,6 @@ Node *stmt()
         Node *node = new_node(ND_BLOCK, tok);
         node->body = head.next;
         return node;
-    }
-
-    if (tok = consume("typedef"))
-    {
-        Type *ty = type_specifier();
-        char *name = NULL;
-        ty = declarator(ty, &name);
-        ty = type_suffix(ty);
-        expect(";");
-        push_scope(name)->type_def = ty;
-        return new_node(ND_NULL, tok);
     }
 
     if (is_typename())
