@@ -139,7 +139,9 @@ char *new_label()
 Function *function();
 Type *type_specifier();
 Type *declarator();
+Type *abstract_declarator(Type *ty);
 Type *type_suffix();
+Type *type_name();
 Type *struct_decl();
 Member *struct_member();
 void global_var();
@@ -313,6 +315,23 @@ Type *declarator(Type *ty, char **name)
     return type_suffix(ty);
 }
 
+// abstract-declarator = "*"* ("(" abstract-declarator ")")? type-suffix
+Type *abstract_declarator(Type *ty)
+{
+    while (consume("*"))
+        ty = pointer_to(ty);
+
+    if (consume("("))
+    {
+        Type *placeholder = calloc(1, sizeof(Type));
+        Type *new_ty = abstract_declarator(placeholder);
+        expect(")");
+        *placeholder = *type_suffix(ty);
+        return new_ty;
+    }
+    return type_suffix(ty);
+}
+
 // type-suffix = ("[" num "]" type-suffix)?
 Type *type_suffix(Type *base)
 {
@@ -322,6 +341,18 @@ Type *type_suffix(Type *base)
     expect("]");
     base = type_suffix(base);
     return array_of(base, sz);
+}
+
+// type-name = type-specifier abstract-declarator type-suffix
+// 独自にtype-suffixを削ってみる
+// type-name = type-specifier abstract-declarator
+Type *type_name()
+{
+    Type *ty = type_specifier();
+    ty = abstract_declarator(ty);
+    // abstract_declaratorがtype_suffixをやってるからいらないのでは？
+    //return type_suffix(ty);
+    return ty;
 }
 
 void push_tag_scope(Token *tok, Type *ty)
@@ -818,6 +849,7 @@ Node *func_args()
 
 // primary = "(" "{" stmt-exprtail
 //         | "(" expr ")"
+//         | "sizeof" "(" type-name ")"
 //         | "sizeof" unary
 //         | ident func-args?
 //         | str
@@ -837,7 +869,19 @@ Node *primary()
     }
 
     if (tok = consume("sizeof"))
+    {
+        if (consume("("))
+        {
+            if (is_typename())
+            {
+                Type *ty = type_name();
+                expect(")");
+                return new_node_num(size_of(ty), tok);
+            }
+            token = tok->next;
+        }
         return new_unary(ND_SIZEOF, unary(), tok);
+    }
 
     if (tok = consume_ident())
     {
