@@ -268,6 +268,8 @@ void gen(Node *node)
         printf("  add rsp, 8\n"); // ずらした分を戻しておく
         printf(".Lend%d:\n", seq);
         printf("  push rax\n");
+
+        truncate(node->ty);
         return;
     }
     case ND_RETURN:

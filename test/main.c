@@ -7,6 +7,8 @@ int *gg2_ptr()
     return &gg2;
 }
 
+char char_fn() { return 257; }
+
 int main()
 {
     test_arith();
@@ -77,6 +79,8 @@ int main()
 
     ASSERT(97, 'a');
     ASSERT(10, '\n');
+
+    ASSERT(1, char_fn());
 
     return 0;
 }
