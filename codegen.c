@@ -131,6 +131,7 @@ void truncate(Type *ty)
     printf("  push rax\n");
 }
 
+// genは、Nodeに応じてcodeを生成している。なので、genの結果、スタックが増減するかしないかは、Nodeの種類に依存する
 void gen(Node *node)
 {
     switch (node->kind)
@@ -149,8 +150,8 @@ void gen(Node *node)
         }
         return;
     case ND_EXPR_STMT:
-        gen(node->lhs);
-        printf("  add rsp, 8\n");
+        gen(node->lhs);           // EXPRをgenして
+        printf("  add rsp, 8\n"); // 直ちにstackを減らして、↑を捨ててる
         return;
     case ND_VAR:
     case ND_MEMBER:
