@@ -164,6 +164,10 @@ void gen(Node *node)
         gen(node->rhs);
         store(node->ty);
         return;
+    case ND_COMMA:
+        gen(node->lhs); // ND_EXPR_STMT
+        gen(node->rhs); // last assign
+        return;
     case ND_ADDR:
         gen_addr(node->lhs);
         return;
