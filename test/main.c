@@ -9,6 +9,13 @@ int *gg2_ptr()
 
 char char_fn();
 
+int count()
+{
+    static cnt;
+    cnt = cnt + 1;
+    return cnt;
+}
+
 int main()
 {
     test_arith();
@@ -93,6 +100,10 @@ int main()
     ASSERT(4, ({ enum { zero, five=5, three=3, four }; four; }));
     ASSERT(4, ({ enum { zero, one, two } x; sizeof(x); }));
     ASSERT(4, ({ enum t { zero, one, two }; enum t y; sizeof(y); }));
+
+    ASSERT(1, count());
+    ASSERT(2, count());
+    ASSERT(3, count());
 
     return 0;
 }

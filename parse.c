@@ -208,13 +208,14 @@ Program *program()
 //                | "short" | "short" "int" | "int" "short"
 //                | "long" | "long" "int" | "int" "long"
 //                | "int"
-// Note that "typedef" can appear anywhere in a type-specifier.
+// Note that "typedef" and "static" can appear anywhere in a type-specifier.
 Type *type_specifier()
 {
     if (!is_typename())
         error_tok(token, "token expected");
 
     bool is_typedef = false;
+    bool is_static = false;
     Type *ty = NULL;
     enum
     {
@@ -234,6 +235,8 @@ Type *type_specifier()
 
         if (consume("typedef"))
             is_typedef = true;
+        else if (consume("static"))
+            is_static = true;
         else if (consume("void"))
             base_type += VOID;
         else if (consume("_Bool"))
@@ -302,6 +305,7 @@ Type *type_specifier()
     }
 
     ty->is_typedef = is_typedef;
+    ty->is_static = is_static;
     return ty;
 }
 
@@ -610,7 +614,11 @@ Node *declaration()
         return new_node(ND_NULL, tok);
     }
 
-    Var *var = push_var(name, ty, true);
+    Var *var;
+    if (ty->is_static)
+        var = push_var(new_label(), ty, false);
+    else
+        var = push_var(name, ty, true);
     push_scope(name)->var = var;
 
     if (consume(";"))
@@ -634,7 +642,7 @@ bool is_typename()
 {
     return peek("void") || peek("_Bool") || peek("char") || peek("short") || peek("int") || peek("long") ||
            peek("struct") || peek("enum") ||
-           peek("typedef") || find_typedef(token);
+           peek("typedef") || peek("static") || find_typedef(token);
 }
 
 // stmt = "return" expr ";"
