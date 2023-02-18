@@ -6,3 +6,6 @@ main
 .vscode/*.log
 test/*.s
 test/*.exe
+
+nqueen
+nqueen.s

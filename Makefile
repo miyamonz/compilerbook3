@@ -17,6 +17,12 @@ test/main.exe: main test/main.c
 test: test/main.exe
 	for i in $^; do echo $$i; ./$$i || exit 1; echo; done
 
+nqueen.s: examples/nqueen.C main
+	./main examples/nqueen.C > $@
+
+nqueen: nqueen.s
+	$(CC) -static -o $@ $^
+
 clean:
 	rm -rf chibicc tmp* test/*.s test/*.exe
 	find * -type f '(' -name '*~' -o -name '*.o' ')' -exec rm {} ';'
