@@ -131,6 +131,20 @@ void truncate(Type *ty)
     printf("  push rax\n");
 }
 
+void inc(Type *ty)
+{
+    printf("  pop rax\n");
+    printf("  add rax, %d\n", ty->base ? size_of(ty->base) : 1);
+    printf("  push rax\n");
+}
+
+void dec(Type *ty)
+{
+    printf("  pop rax\n");
+    printf("  sub rax, %d\n", ty->base ? size_of(ty->base) : 1);
+    printf("  push rax\n");
+}
+
 // genは、Nodeに応じてcodeを生成している。なので、genの結果、スタックが増減するかしないかは、Nodeの種類に依存する
 void gen(Node *node)
 {
@@ -161,8 +175,38 @@ void gen(Node *node)
         return;
     case ND_ASSIGN:
         gen_lval(node->lhs); // a pointer is pushed into the stack
-        gen(node->rhs); // value is pushed to the stack
+        gen(node->rhs);      // value is pushed to the stack
         store(node->ty);
+        return;
+    case ND_PRE_INC:
+        gen_lval(node->lhs);      // 変数のポインタをスタックにpushする。後にstoreするためにスタックに乗せる。
+        printf("  push [rsp]\n"); // [rsp]はスタックの頭なので、これは同じ値をpushし直すことになる。
+        load(node->ty);           // ポインタを、ポインタが指す値に置き換える
+        inc(node->ty);            // 値を増やす
+        store(node->ty);          // gen_lvalのときにスタックに乗せたポインタに、上の値をstoreする
+        return;
+    case ND_PRE_DEC:
+        gen_lval(node->lhs);
+        printf("  push [rsp]\n");
+        load(node->ty);
+        dec(node->ty);
+        store(node->ty);
+        return;
+    case ND_POST_INC:
+        gen_lval(node->lhs);
+        printf("  push [rsp]\n");
+        load(node->ty);
+        inc(node->ty);   // 先に+1しておく
+        store(node->ty); // 変数のポインタが指す値は、増えた値がstoreされる。変数のポインタの値は、1増えたものになる。
+        dec(node->ty);   // storeの結果、値がstackに残る。これを-1しておくことで、スタック上の値は、+-で元の値になる。
+        return;
+    case ND_POST_DEC:
+        gen_lval(node->lhs);
+        printf("  push [rsp]\n");
+        load(node->ty);
+        dec(node->ty);
+        store(node->ty);
+        inc(node->ty);
         return;
     case ND_COMMA:
         gen(node->lhs); // ND_EXPR_STMT

@@ -155,6 +155,10 @@ void visit(Node *node)
             error_tok(node->tok, "invalid pointer arithmetic operands");
         node->ty = node->lhs->ty;
         return;
+    case ND_PRE_INC:
+    case ND_PRE_DEC:
+    case ND_POST_INC:
+    case ND_POST_DEC:
     case ND_ASSIGN:
         node->ty = node->lhs->ty;
         return;
