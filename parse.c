@@ -114,8 +114,6 @@ Var *push_var(char *name, Type *ty, bool is_local)
         globals = vl;
     }
 
-    push_scope(name)->var = var;
-
     return var;
 }
 
@@ -499,8 +497,11 @@ VarList *read_func_param()
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
 
+    Var *var = push_var(name, ty, true);
+    push_scope(name)->var = var;
+
     VarList *vl = calloc(1, sizeof(VarList));
-    vl->var = push_var(name, ty, true);
+    vl->var = var;
     return vl;
 }
 
@@ -533,7 +534,8 @@ Function *function()
     ty = declarator(ty, &name);
 
     // add a function type to the scope
-    push_var(name, func_type(ty), false);
+    Var *var = push_var(name, func_type(ty), false);
+    push_scope(name)->var = var;
 
     // construct a function object
     Function *fn = calloc(1, sizeof(Function));
@@ -583,7 +585,8 @@ void global_var()
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
     expect(";");
-    push_var(name, ty, false);
+    Var *var = push_var(name, ty, false);
+    push_scope(name)->var = var;
 }
 
 // declaration = type-specifier declarator type-suffix ("=" expr) ";"
@@ -608,6 +611,7 @@ Node *declaration()
     }
 
     Var *var = push_var(name, ty, true);
+    push_scope(name)->var = var;
 
     if (consume(";"))
         return new_node(ND_NULL, tok);
