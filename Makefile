@@ -11,7 +11,8 @@ $(OBJS): main.h
 test/main.exe: main test/main.c
 # ASSERTのプリプロセスのみを行う
 	$(CC) -o- -E -P -C test/main.c | ./main - > test/main.s
-	$(CC) -static -o $@ test/main.s -xc test/common.c
+	echo 'int char_fn() { return 257; }' | $(CC) -xc -c -o test/tmp2.o -
+	$(CC) -static -o $@ test/main.s test/tmp2.o -xc test/common.c
 
 test: test/main.exe
 	for i in $^; do echo $$i; ./$$i || exit 1; echo; done

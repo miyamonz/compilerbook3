@@ -7,7 +7,7 @@ int *gg2_ptr()
     return &gg2;
 }
 
-char char_fn() { return 257; }
+char char_fn();
 
 int main()
 {

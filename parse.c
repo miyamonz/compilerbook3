@@ -184,13 +184,14 @@ Program *program()
     {
         if (is_function())
         {
-            cur->next = function();
-            cur = cur->next;
+            Function *fn = function();
+            if (!fn)
+                continue;
+
+            cur = cur->next = fn;
+            continue;
         }
-        else
-        {
-            global_var();
-        }
+        global_var();
     }
 
     Program *prog = calloc(1, sizeof(Program));
@@ -460,7 +461,7 @@ VarList *read_func_params()
     return head;
 }
 
-// function = type-specifier declarator "(" params? ")" "{" stmt* "}"
+// function = type-specifier declarator "(" params? ")" ( "{" stmt* "}" | ";" )
 // params   = param ("," param)*
 // param    = type-specifier declarator
 Function *function()
@@ -479,6 +480,10 @@ Function *function()
 
     expect("(");
     fn->params = read_func_params();
+
+    if (consume(";"))
+        return NULL;
+
     expect("{");
 
     // body
