@@ -74,8 +74,8 @@ void load(Type *ty)
 
 void store(Type *ty)
 {
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
+    printf("  pop rdi\n"); // has value
+    printf("  pop rax\n"); // has pointer location to save
 
     if (ty->kind == TY_BOOL)
     {
@@ -100,7 +100,7 @@ void store(Type *ty)
         assert(sz == 8);
         printf("  mov [rax], rdi\n");
     }
-    printf("  push rdi\n");
+    printf("  push rdi\n"); // returns the value
 }
 
 void truncate(Type *ty)
@@ -160,8 +160,8 @@ void gen(Node *node)
             load(node->ty);
         return;
     case ND_ASSIGN:
-        gen_lval(node->lhs);
-        gen(node->rhs);
+        gen_lval(node->lhs); // a pointer is pushed into the stack
+        gen(node->rhs); // value is pushed to the stack
         store(node->ty);
         return;
     case ND_COMMA:
