@@ -6,6 +6,7 @@ struct VarScope
 {
     VarScope *next;
     char *name;
+    int depth;
     Var *var;
     Type *type_def;
     Type *enum_ty;
@@ -18,6 +19,7 @@ struct TagScope
 {
     TagScope *next;
     char *name;
+    int depth;
     Type *ty;
 };
 
@@ -32,12 +34,14 @@ VarList *globals;
 
 VarScope *var_scope;
 TagScope *tag_scope;
+int scope_depth;
 
 Scope *enter_scope()
 {
     Scope *sc = calloc(1, sizeof(Scope));
     sc->var_scope = var_scope;
     sc->tag_scope = tag_scope;
+    ++scope_depth;
     return sc;
 }
 
@@ -45,6 +49,7 @@ void leave_scope(Scope *sc)
 {
     var_scope = sc->var_scope;
     tag_scope = sc->tag_scope;
+    --scope_depth;
 }
 
 // find a variable or a typedef by name
@@ -109,6 +114,7 @@ VarScope *push_scope(char *name)
     VarScope *sc = calloc(1, sizeof(VarScope));
     sc->name = name;
     sc->next = var_scope;
+    sc->depth = scope_depth;
     var_scope = sc;
     return sc;
 }
@@ -408,6 +414,7 @@ void push_tag_scope(Token *tok, Type *ty)
     TagScope *sc = calloc(1, sizeof(TagScope));
     sc->next = tag_scope;
     sc->name = strndup(tok->str, tok->len);
+    sc->depth = scope_depth;
     sc->ty = ty;
     tag_scope = sc;
 }
