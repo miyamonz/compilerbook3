@@ -126,6 +126,15 @@ int main()
     ASSERT(2, ({ int a[3]; a[0]=0; a[1]=1; a[2]=2; int *p=a+1; (*p++)--; a[2]; }));
     ASSERT(2, ({ int a[3]; a[0]=0; a[1]=1; a[2]=2; int *p=a+1; (*p++)--; *p; }));
 
+    ASSERT(7, ({ int i=2; i+=5; i; }));
+    ASSERT(7, ({ int i=2; i+=5; }));
+    ASSERT(3, ({ int i=5; i-=2; i; }));
+    ASSERT(3, ({ int i=5; i-=2; }));
+    ASSERT(6, ({ int i=3; i*=2; i; }));
+    ASSERT(6, ({ int i=3; i*=2; }));
+    ASSERT(3, ({ int i=6; i/=2; i; }));
+    ASSERT(3, ({ int i=6; i/=2; }));
+
     return 0;
 }
 

@@ -159,6 +159,10 @@ void visit(Node *node)
     case ND_PRE_DEC:
     case ND_POST_INC:
     case ND_POST_DEC:
+    case ND_A_ADD:
+    case ND_A_SUB:
+    case ND_A_MUL:
+    case ND_A_DIV:
     case ND_ASSIGN:
         node->ty = node->lhs->ty;
         return;

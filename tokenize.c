@@ -168,7 +168,19 @@ char *starts_with_reserved(char *p)
             return kw[i];
     }
 
-    static char *ops[] = {"==", "!=", "<=", ">=", "->", "++", "--"};
+    static char *ops[] = {
+        "==",
+        "!=",
+        "<=",
+        ">=",
+        "->",
+        "++",
+        "--",
+        "+=",
+        "-=",
+        "*=",
+        "/=",
+    };
 
     for (int i = 0; i < sizeof(ops) / sizeof(*ops); i++)
     {

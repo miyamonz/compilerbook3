@@ -208,6 +208,43 @@ void gen(Node *node)
         store(node->ty);
         inc(node->ty);
         return;
+    case ND_A_ADD:
+    case ND_A_SUB:
+    case ND_A_MUL:
+    case ND_A_DIV:
+    {
+        gen_lval(node->lhs);      // 後のstoreのためにポインタをpush
+        printf("  push [rsp]\n"); // 同じポインタをpush
+        load(node->lhs->ty);      // 値を読む
+        gen(node->rhs);           // スタックに右辺をpush
+        printf("  pop rdi\n");    // 右辺の値
+        printf("  pop rax\n");    // 左辺の変数の値
+
+        switch (node->kind)
+        {
+        case ND_A_ADD:
+            if (node->ty->base)
+                printf("  imul rdi, %d\n", size_of(node->ty->base));
+            printf("  add rax, rdi\n");
+            break;
+        case ND_A_SUB:
+            if (node->ty->base)
+                printf("  imul rdi, %d\n", size_of(node->ty->base));
+            printf("  sub rax, rdi\n");
+            break;
+        case ND_A_MUL:
+            printf("  imul rax, rdi\n");
+            break;
+        case ND_A_DIV:
+            printf("  cqo\n");
+            printf("  idiv rdi\n");
+            break;
+        }
+
+        printf("  push rax\n");
+        store(node->ty);
+        return;
+    }
     case ND_COMMA:
         gen(node->lhs); // ND_EXPR_STMT
         gen(node->rhs); // last assign
