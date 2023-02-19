@@ -139,6 +139,9 @@ int main()
     ASSERT(0, !2);
     ASSERT(1, !0);
 
+    ASSERT(-1, ~0);
+    ASSERT(0, ~-1);
+
     return 0;
 }
 

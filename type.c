@@ -164,6 +164,7 @@ void visit(Node *node)
     case ND_A_SUB:
     case ND_A_MUL:
     case ND_A_DIV:
+    case ND_BITNOT:
     case ND_ASSIGN:
         node->ty = node->lhs->ty;
         return;
