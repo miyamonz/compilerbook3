@@ -135,6 +135,10 @@ int main()
     ASSERT(3, ({ int i=6; i/=2; i; }));
     ASSERT(3, ({ int i=6; i/=2; }));
 
+    ASSERT(0, !1);
+    ASSERT(0, !2);
+    ASSERT(1, !0);
+
     return 0;
 }
 
