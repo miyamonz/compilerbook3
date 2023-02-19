@@ -21,11 +21,31 @@ struct TagScope
     Type *ty;
 };
 
+typedef struct
+{
+    VarScope *var_scope;
+    TagScope *tag_scope;
+} Scope;
+
 VarList *locals;
 VarList *globals;
 
 VarScope *var_scope;
 TagScope *tag_scope;
+
+Scope *enter_scope()
+{
+    Scope *sc = calloc(1, sizeof(Scope));
+    sc->var_scope = var_scope;
+    sc->tag_scope = tag_scope;
+    return sc;
+}
+
+void leave_scope(Scope *sc)
+{
+    var_scope = sc->var_scope;
+    tag_scope = sc->tag_scope;
+}
 
 // find a variable or a typedef by name
 VarScope *find_var(Token *tok)
@@ -698,9 +718,7 @@ Node *stmt()
 
         // codegenの際にstackに保持したいものをexpr,いらないものをexpr_stmtとして作れば良い
         expect("(");
-
-        VarScope *sc1 = var_scope;
-        TagScope *sc2 = tag_scope;
+        Scope *sc = enter_scope();
 
         if (!consume(";"))
         {
@@ -726,8 +744,7 @@ Node *stmt()
         }
         node->then = stmt();
 
-        var_scope = sc1;
-        tag_scope = sc2;
+        leave_scope(sc);
         return node;
     }
 
@@ -737,15 +754,13 @@ Node *stmt()
         head.next = NULL;
         Node *cur = &head;
 
-        VarScope *sc1 = var_scope;
-        TagScope *sc2 = tag_scope;
+        Scope *sc = enter_scope();
         while (!consume("}"))
         {
             cur->next = stmt();
             cur = cur->next;
         }
-        var_scope = sc1;
-        tag_scope = sc2;
+        leave_scope(sc);
 
         Node *node = new_node(ND_BLOCK, tok);
         node->body = head.next;
@@ -1012,9 +1027,7 @@ Node *postfix()
 // Statement expression is a GNU C extension
 Node *stmt_expr(Token *tok)
 {
-    VarScope *sc1 = var_scope;
-    TagScope *sc2 = tag_scope;
-
+    Scope *sc = enter_scope();
     Node *node = new_node(ND_STMT_EXPR, tok);
     node->body = stmt();
     Node *cur = node->body;
@@ -1025,9 +1038,7 @@ Node *stmt_expr(Token *tok)
         cur = cur->next;
     }
     expect(")");
-
-    var_scope = sc1;
-    tag_scope = sc2;
+    leave_scope(sc);
 
     if (cur->kind != ND_EXPR_STMT)
         error_tok(cur->tok, "stmt expr returning void is not supported");
