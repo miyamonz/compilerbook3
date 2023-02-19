@@ -142,6 +142,20 @@ int main()
     ASSERT(-1, ~0);
     ASSERT(0, ~-1);
 
+    ASSERT(0, 0 & 1);
+    ASSERT(1, 3 & 1); // 0b11 & 0b01 = 0b01
+    ASSERT(3, 7 & 3); // 0b111 & 0b011 = 0b011
+    ASSERT(10, -1 & 10);
+
+    ASSERT(1, 0 | 1);
+    ASSERT(3, 2 | 1);
+    ASSERT(3, 1 | 3);
+
+    ASSERT(0, 0 ^ 0);
+    ASSERT(0, 8 ^ 8);
+    ASSERT(4, 7 ^ 3); // 0b111 ^ 0b011 = 0b100
+    ASSERT(2, 7 ^ 5); // 0b111 ^ 0b101 = 0b010
+
     return 0;
 }
 
