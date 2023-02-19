@@ -156,6 +156,15 @@ int main()
     ASSERT(4, 7 ^ 3); // 0b111 ^ 0b011 = 0b100
     ASSERT(2, 7 ^ 5); // 0b111 ^ 0b101 = 0b010
 
+    ASSERT(1, 0 || 1);
+    ASSERT(1, 0 || (2 - 2) || 5);
+    ASSERT(0, 0 || 0);
+    ASSERT(0, 0 || (2 - 2));
+
+    ASSERT(0, 0 && 1);
+    ASSERT(0, (2 - 2) && 5);
+    ASSERT(1, 1 && 5);
+
     return 0;
 }
 

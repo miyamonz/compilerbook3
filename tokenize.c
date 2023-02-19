@@ -180,6 +180,8 @@ char *starts_with_reserved(char *p)
         "-=",
         "*=",
         "/=",
+        "&&",
+        "||",
     };
 
     for (int i = 0; i < sizeof(ops) / sizeof(*ops); i++)
