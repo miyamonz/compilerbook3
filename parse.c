@@ -371,15 +371,24 @@ Type *abstract_declarator(Type *ty)
     return type_suffix(ty);
 }
 
-// type-suffix = ("[" num "]" type-suffix)?
-Type *type_suffix(Type *base)
+// type-suffix = ("[" num? "]" type-suffix)?
+Type *type_suffix(Type *ty)
 {
     if (!consume("["))
-        return base;
-    int sz = expect_number();
-    expect("]");
-    base = type_suffix(base);
-    return array_of(base, sz);
+        return ty;
+
+    int sz = 0;
+    bool is_incomplete = true;
+    if (!consume("]"))
+    {
+        sz = expect_number();
+        is_incomplete = false;
+        expect("]");
+    }
+    ty = type_suffix(ty);
+    ty = array_of(ty, sz);
+    ty->is_incomplete = is_incomplete;
+    return ty;
 }
 
 // type-name = type-specifier abstract-declarator type-suffix

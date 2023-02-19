@@ -199,13 +199,14 @@ typedef enum
 struct Type
 {
     TypeKind kind;
-    bool is_typedef; // typedef
-    bool is_static;  // static
-    int align;       // alignment
-    Type *base;      // pointer or array
-    int array_size;  // array
-    Member *members; // struct
-    Type *return_ty; // function
+    bool is_typedef;    // typedef
+    bool is_static;     // static
+    bool is_incomplete; // incomplete array
+    int align;          // alignment
+    Type *base;         // pointer or array
+    int array_size;     // array
+    Member *members;    // struct
+    Type *return_ty;    // function
 };
 
 // Struct member
