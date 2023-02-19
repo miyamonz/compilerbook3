@@ -63,6 +63,7 @@ struct Var
 {
     char *name;    // Variable name
     Type *ty;      // Type
+    Token *tok;    // for error message
     bool is_local; // local or global
 
     // Local variable
@@ -212,6 +213,7 @@ struct Member
 {
     Member *next;
     Type *ty;
+    Token *tok;
     char *name;
     int offset;
 };
@@ -227,7 +229,7 @@ Type *enum_type();
 Type *func_type(Type *return_ty);
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int size);
-int size_of(Type *ty);
+int size_of(Type *ty, Token *tok);
 void add_type(Program *prog);
 
 // codegen.c

@@ -113,11 +113,12 @@ VarScope *push_scope(char *name)
     return sc;
 }
 
-Var *push_var(char *name, Type *ty, bool is_local)
+Var *push_var(char *name, Type *ty, bool is_local, Token *tok)
 {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
     var->ty = ty;
+    var->tok = tok;
     var->is_local = is_local;
 
     VarList *vl = calloc(1, sizeof(Var));
@@ -440,7 +441,7 @@ Type *struct_decl()
     {
         offset = align_to(offset, mem->ty->align);
         mem->offset = offset;
-        offset += size_of(mem->ty);
+        offset += size_of(mem->ty, mem->tok);
 
         // structのalignは、memberのalignの最大値とする
         if (ty->align < mem->ty->align)
@@ -508,6 +509,7 @@ Type *enum_specifier()
 Member *struct_member()
 {
     Type *ty = type_specifier();
+    Token *tok = token;
     char *name = NULL;
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
@@ -515,6 +517,7 @@ Member *struct_member()
     Member *mem = calloc(1, sizeof(Member));
     mem->name = name;
     mem->ty = ty;
+    mem->tok = tok;
     expect(";");
     return mem;
 }
@@ -523,10 +526,11 @@ VarList *read_func_param()
 {
     Type *ty = type_specifier();
     char *name = NULL;
+    Token *tok = token;
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
 
-    Var *var = push_var(name, ty, true);
+    Var *var = push_var(name, ty, true, tok);
     push_scope(name)->var = var;
 
     VarList *vl = calloc(1, sizeof(VarList));
@@ -560,10 +564,11 @@ Function *function()
     locals = NULL;
     Type *ty = type_specifier();
     char *name = NULL;
+    Token *tok = token;
     ty = declarator(ty, &name);
 
     // add a function type to the scope
-    Var *var = push_var(name, func_type(ty), false);
+    Var *var = push_var(name, func_type(ty), false, tok);
     push_scope(name)->var = var;
 
     // construct a function object
@@ -598,7 +603,7 @@ Function *function()
     {
         Var *var = vl->var;
         offset = align_to(offset, var->ty->align);
-        offset += size_of(var->ty);
+        offset += size_of(var->ty, var->tok);
         vl->var->offset = offset;
     }
     fn->stack_size = align_to(offset, 8);
@@ -611,10 +616,11 @@ void global_var()
 {
     Type *ty = type_specifier();
     char *name = NULL;
+    Token *tok = token;
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
     expect(";");
-    Var *var = push_var(name, ty, false);
+    Var *var = push_var(name, ty, false, tok);
     push_scope(name)->var = var;
 }
 
@@ -622,11 +628,12 @@ void global_var()
 //             | type-specifier ";"
 Node *declaration()
 {
-    Token *tok = token;
+    Token *tok;
     Type *ty = type_specifier();
     if (consume(";"))
         return new_node(ND_NULL, tok);
 
+    tok = token;
     char *name = NULL;
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
@@ -641,9 +648,9 @@ Node *declaration()
 
     Var *var;
     if (ty->is_static)
-        var = push_var(new_label(), ty, false);
+        var = push_var(new_label(), ty, false, tok);
     else
-        var = push_var(name, ty, true);
+        var = push_var(name, ty, true, tok);
     push_scope(name)->var = var;
 
     if (consume(";"))
@@ -1092,7 +1099,7 @@ Node *primary()
             {
                 Type *ty = type_name();
                 expect(")");
-                return new_node_num(size_of(ty), tok);
+                return new_node_num(size_of(ty, tok), tok);
             }
             token = tok->next;
         }
@@ -1139,7 +1146,7 @@ Node *primary()
     {
         token = token->next;
         Type *ty = array_of(char_type(), tok->cont_len);
-        Var *var = push_var(new_label(), ty, false);
+        Var *var = push_var(new_label(), ty, false, NULL);
         var->contents = tok->contents;
         var->cont_len = tok->cont_len;
         return new_var(var, tok);

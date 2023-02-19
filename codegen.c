@@ -53,7 +53,7 @@ void load(Type *ty)
 {
     printf("  pop rax\n");
 
-    int sz = size_of(ty);
+    int sz = size_of(ty, NULL);
     if (sz == 1)
         printf("  movsx rax, byte ptr [rax]\n");
     else if (sz == 2)
@@ -84,7 +84,7 @@ void store(Type *ty)
         printf("  movzb rdi, dil\n");
     }
 
-    int sz = size_of(ty);
+    int sz = size_of(ty, NULL);
     if (sz == 1)
         printf("  mov [rax], dil\n");
     else if (sz == 2)
@@ -115,7 +115,7 @@ void truncate(Type *ty)
     }
 
     // https://www.sigbus.info/compilerbook#:~:text=%E3%82%B3%E3%83%A9%E3%83%A0%3A%208%E3%83%93%E3%83%83%E3%83%88%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%A832%E3%83%93%E3%83%83%E3%83%88%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E9%81%95%E3%81%84
-    int sz = size_of(ty);
+    int sz = size_of(ty, NULL);
     if (sz == 1)
     {
         printf("  movsx rax, al\n");
@@ -131,17 +131,17 @@ void truncate(Type *ty)
     printf("  push rax\n");
 }
 
-void inc(Type *ty)
+void inc(Node *node)
 {
     printf("  pop rax\n");
-    printf("  add rax, %d\n", ty->base ? size_of(ty->base) : 1);
+    printf("  add rax, %d\n", node->ty->base ? size_of(node->ty->base, node->tok) : 1);
     printf("  push rax\n");
 }
 
-void dec(Type *ty)
+void dec(Node *node)
 {
     printf("  pop rax\n");
-    printf("  sub rax, %d\n", ty->base ? size_of(ty->base) : 1);
+    printf("  sub rax, %d\n", node->ty->base ? size_of(node->ty->base, node->tok) : 1);
     printf("  push rax\n");
 }
 
@@ -182,31 +182,31 @@ void gen(Node *node)
         gen_lval(node->lhs);      // 変数のポインタをスタックにpushする。後にstoreするためにスタックに乗せる。
         printf("  push [rsp]\n"); // [rsp]はスタックの頭なので、これは同じ値をpushし直すことになる。
         load(node->ty);           // ポインタを、ポインタが指す値に置き換える
-        inc(node->ty);            // 値を増やす
+        inc(node);                // 値を増やす
         store(node->ty);          // gen_lvalのときにスタックに乗せたポインタに、上の値をstoreする
         return;
     case ND_PRE_DEC:
         gen_lval(node->lhs);
         printf("  push [rsp]\n");
         load(node->ty);
-        dec(node->ty);
+        dec(node);
         store(node->ty);
         return;
     case ND_POST_INC:
         gen_lval(node->lhs);
         printf("  push [rsp]\n");
         load(node->ty);
-        inc(node->ty);   // 先に+1しておく
+        inc(node);       // 先に+1しておく
         store(node->ty); // 変数のポインタが指す値は、増えた値がstoreされる。変数のポインタの値は、1増えたものになる。
-        dec(node->ty);   // storeの結果、値がstackに残る。これを-1しておくことで、スタック上の値は、+-で元の値になる。
+        dec(node);       // storeの結果、値がstackに残る。これを-1しておくことで、スタック上の値は、+-で元の値になる。
         return;
     case ND_POST_DEC:
         gen_lval(node->lhs);
         printf("  push [rsp]\n");
         load(node->ty);
-        dec(node->ty);
+        dec(node);
         store(node->ty);
-        inc(node->ty);
+        inc(node);
         return;
     case ND_A_ADD:
     case ND_A_SUB:
@@ -224,12 +224,12 @@ void gen(Node *node)
         {
         case ND_A_ADD:
             if (node->ty->base)
-                printf("  imul rdi, %d\n", size_of(node->ty->base));
+                printf("  imul rdi, %d\n", size_of(node->ty->base, node->tok));
             printf("  add rax, rdi\n");
             break;
         case ND_A_SUB:
             if (node->ty->base)
-                printf("  imul rdi, %d\n", size_of(node->ty->base));
+                printf("  imul rdi, %d\n", size_of(node->ty->base, node->tok));
             printf("  sub rax, rdi\n");
             break;
         case ND_A_MUL:
@@ -429,12 +429,12 @@ void gen(Node *node)
     {
     case ND_ADD:
         if (node->ty->base)
-            printf("  imul rdi, %d\n", size_of(node->ty->base));
+            printf("  imul rdi, %d\n", size_of(node->ty->base, node->tok));
         printf("  add rax, rdi\n");
         break;
     case ND_SUB:
         if (node->ty->base)
-            printf("  imul rdi, %d\n", size_of(node->ty->base));
+            printf("  imul rdi, %d\n", size_of(node->ty->base, node->tok));
         printf("  sub rax, rdi\n");
         break;
     case ND_MUL:
@@ -492,7 +492,7 @@ void emit_data(Program *prog)
 
         if (!var->contents)
         {
-            printf("  .zero %d\n", size_of(var->ty));
+            printf("  .zero %d\n", size_of(var->ty, var->tok));
             continue;
         }
         for (int i = 0; i < var->cont_len; i++)
@@ -502,7 +502,7 @@ void emit_data(Program *prog)
 
 void load_arg(Var *var, int idx)
 {
-    int sz = size_of(var->ty);
+    int sz = size_of(var->ty, var->tok);
     if (sz == 1)
     {
         printf("  mov [rbp-%d], %s\n", var->offset, argreg1[idx]);
