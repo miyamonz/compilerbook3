@@ -15,6 +15,7 @@ int count()
     cnt = cnt + 1;
     return cnt;
 }
+int param_decay(int x[]) { return x[0]; }
 
 int main()
 {
@@ -164,6 +165,8 @@ int main()
     ASSERT(0, 0 && 1);
     ASSERT(0, (2 - 2) && 5);
     ASSERT(1, 1 && 5);
+
+    ASSERT(3, ({ int x[2]; x[0]=3; param_decay(x); }));
 
     return 0;
 }
