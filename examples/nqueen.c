@@ -45,10 +45,7 @@ int solve(int (*board)[10], int row)
     }
     for (int i = 0; i < 10; i++)
     {
-        if (conflict(board, row, i))
-        {
-        }
-        else
+        if (!conflict(board, row, i))
         {
             board[row][i] = 1;
             solve(board, row + 1);
