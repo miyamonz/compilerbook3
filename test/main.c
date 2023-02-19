@@ -168,6 +168,10 @@ int main()
 
     ASSERT(3, ({ int x[2]; x[0]=3; param_decay(x); }));
 
+    ASSERT(8, ({ struct *foo; sizeof(foo); }));
+    ASSERT(4, ({ struct T *foo; struct T {int x;}; sizeof(struct T); }));
+    ASSERT(1, ({ struct T { struct T *next; int x; } a; struct T b; b.x=1; a.next=&b; a.next->x; }));
+
     return 0;
 }
 

@@ -419,8 +419,7 @@ void push_tag_scope(Token *tok, Type *ty)
     tag_scope = sc;
 }
 
-// struct-decl = "struct" ident
-//             | "struct" ident? "{" struct-member "}"
+// struct-decl = "struct" ident? ("{" struct-member "}")?
 Type *struct_decl()
 {
     expect("struct");
@@ -430,12 +429,40 @@ Type *struct_decl()
     {
         TagScope *sc = find_tag(tag);
         if (!sc)
-            error_tok(tag, "unknown struct type");
+        {
+            Type *ty = struct_type();
+            push_tag_scope(tag, ty);
+            return ty;
+        }
         if (sc->ty->kind != TY_STRUCT)
             error_tok(tag, "not a struct tag");
         return sc->ty;
     }
-    expect("{");
+    // Although it looks weird, "struct *foo" is legal C that defines
+    // foo as a pointer to an unnamed incomplete struct type.
+    if (!consume("{"))
+        return struct_type();
+
+    TagScope *sc = find_tag(tag);
+    Type *ty;
+
+    if (sc && sc->depth == scope_depth)
+    {
+        // If there's an existing struct type having the same tag name in
+        // the same block scope, this is a redefinition.
+        if (sc->ty->kind != TY_STRUCT)
+            error_tok(tag, "not a struct tag");
+        ty = sc->ty;
+    }
+    else
+    {
+        // Register a struct type as an incomplete type early, so that you
+        // can write recursive structs such as
+        // "struct T { struct T *next; }".
+        ty = struct_type();
+        if (tag)
+            push_tag_scope(tag, ty);
+    }
 
     Member head;
     head.next = NULL;
@@ -447,8 +474,6 @@ Type *struct_decl()
         cur = cur->next;
     }
 
-    Type *ty = calloc(1, sizeof(Type));
-    ty->kind = TY_STRUCT;
     ty->members = head.next;
 
     // Assign offsets within the struct to members.
@@ -467,6 +492,8 @@ Type *struct_decl()
     // Register the struct type if a name was given.
     if (tag)
         push_tag_scope(tag, ty);
+
+    ty->is_incomplete = false;
 
     return ty;
 }
