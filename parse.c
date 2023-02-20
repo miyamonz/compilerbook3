@@ -730,6 +730,7 @@ bool is_typename()
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" (expr? ";" | declaration) expr? ";" expr? ")" stmt
 //        | "{" stmt* "}"
+//        | "break" ";"
 //        | "typedef" type-specifier declarator type-suffix ";"
 //        | declaration
 //        | expr ";"
@@ -820,6 +821,12 @@ Node *stmt()
         Node *node = new_node(ND_BLOCK, tok);
         node->body = head.next;
         return node;
+    }
+
+    if (tok = consume("break"))
+    {
+        expect(";");
+        return new_node(ND_BREAK, tok);
     }
 
     if (is_typename())

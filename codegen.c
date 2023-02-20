@@ -1,6 +1,7 @@
 #include "main.h"
 
-int labelseq = 0;
+int labelseq;
+int brkseq;
 // https://www.sigbus.info/compilerbook#%E6%95%B4%E6%95%B0%E3%83%AC%E3%82%B8%E3%82%B9%E3%82%BF%E3%81%AE%E4%B8%80%E8%A6%A7
 char *argreg1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 char *argreg2[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
@@ -337,20 +338,28 @@ void gen(Node *node)
     {
 
         int seq = labelseq++;
+        int brk = brkseq;
+        brkseq = seq;
+
         printf(".Lbegin%d:\n", seq);
         gen(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je  .Lend%d\n", seq);
+        printf("  je  .L.break.%d\n", seq);
         gen(node->then);
-        printf("  jmp .Lbegin%d\n", seq);
-        printf(".Lend%d:\n", seq);
+        printf("  jmp  .Lbegin%d\n", seq);
+        printf(".L.break.%d:\n", seq);
+
+        brkseq = brk;
         return;
     }
     case ND_FOR:
     {
 
         int seq = labelseq++;
+        int brk = brkseq;
+        brkseq = seq;
+
         if (node->init)
             gen(node->init);
         printf(".Lbegin%d:\n", seq);
@@ -359,19 +368,26 @@ void gen(Node *node)
             gen(node->cond);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je  .Lend%d\n", seq);
+            printf("  je .L.break.%d\n", seq);
         }
         gen(node->then);
         if (node->inc)
             gen(node->inc);
         printf("  jmp .Lbegin%d\n", seq);
-        printf(".Lend%d:\n", seq);
+        printf(".L.break.%d:\n", seq);
+
+        brkseq = brk;
         return;
     }
     case ND_BLOCK:
     case ND_STMT_EXPR:
         for (Node *n = node->body; n; n = n->next)
             gen(n);
+        return;
+    case ND_BREAK:
+        if (brkseq == 0)
+            error_tok(node->tok, "stray break");
+        printf("  jmp .L.break.%d\n", brkseq);
         return;
     case ND_FUNCALL:
     {
