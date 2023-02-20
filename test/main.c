@@ -177,6 +177,7 @@ int main()
     ASSERT(3, ({ int i=0; for(;i<10;i++) { for (;;) break; if (i == 3) break; } i; }));
     ASSERT(4, ({ int i=0; while (1) { while(1) break; if (i++ == 3) break; } i; }));
 
+    printf("OK\n");
     return 0;
 }
 
@@ -213,7 +214,6 @@ int test_arith()
     ASSERT(1, 1 >= 1);
     ASSERT(0, 1 >= 2);
 
-    printf("OK");
     return 0;
 }
 
@@ -230,7 +230,6 @@ int test_control()
     ASSERT(55, ({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; }));
     ASSERT(55, ({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; }));
 
-    printf("OK");
     return 0;
 }
 
@@ -286,7 +285,6 @@ int test_function()
 
     ASSERT(1, ({ sub_char(7, 3, 3); }));
 
-    printf("OK");
     return 0;
 }
 
@@ -336,7 +334,6 @@ int test_pointer()
     ASSERT(5, ({ int x[2][3]; int *y=x; y[5]=5; x[1][2]; }));
     ASSERT(6, ({ int x[2][3]; int *y=x; y[6]=6; x[2][0]; }));
 
-    printf("OK");
     return 0;
 }
 
@@ -363,7 +360,6 @@ int test_string()
     ASSERT(107, "\k"[0]);
     ASSERT(108, "\l"[0]);
 
-    printf("OK");
     return 0;
 }
 
@@ -417,7 +413,6 @@ int test_variable()
     ASSERT(2, ({ int x=2; { int x=3; } int y=4; x; }));
     ASSERT(3, ({ int x=2; { x=3; } x; }));
 
-    printf("OK");
     return 0;
 }
 
@@ -472,7 +467,7 @@ int test_struct()
 
     ASSERT(8, ({ struct t {int a; int b;} x; struct t y; sizeof(y); }));
     ASSERT(8, ({ struct t {int a; int b;}; struct t y; sizeof(y); }));
-    printf("OK");
+
     return 0;
 }
 
@@ -495,6 +490,5 @@ int test_type()
     ASSERT(1, sub_short(7, 3, 3));
     ASSERT(1, sub_long(7, 3, 3));
 
-    printf("OK");
     return 0;
 }

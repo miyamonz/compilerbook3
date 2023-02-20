@@ -6,7 +6,7 @@ void assert(long expected, long actual, char *code)
 {
   if (expected == actual)
   {
-    printf("%s => %ld\n", code, actual);
+    // printf("%s => %ld\n", code, actual);
   }
   else
   {
