@@ -1,5 +1,6 @@
 *~
 *.o
+*.exe
 tmp*
 a.out
 main
