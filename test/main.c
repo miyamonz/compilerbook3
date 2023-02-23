@@ -17,6 +17,8 @@ int count()
 }
 int param_decay(int x[]) { return x[0]; }
 
+void voidfn() {}
+
 int main()
 {
     test_arith();
@@ -194,6 +196,8 @@ int main()
     ASSERT(0, ({ int i=0; switch(3) { case 0:i=5;break; case 1:i=6;break; case 2:i=7;break; } i; }));
     ASSERT(5, ({ int i=0; switch(0) { case 0:i=5;break; default:i=7; } i; }));
     ASSERT(7, ({ int i=0; switch(1) { case 0:i=5;break; default:i=7; } i; }));
+
+    voidfn();
 
     printf("OK\n");
     return 0;
