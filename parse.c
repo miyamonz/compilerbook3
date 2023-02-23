@@ -731,6 +731,7 @@ bool is_typename()
 //        | "for" "(" (expr? ";" | declaration) expr? ";" expr? ")" stmt
 //        | "{" stmt* "}"
 //        | "break" ";"
+//        | "continue" ";"
 //        | "typedef" type-specifier declarator type-suffix ";"
 //        | declaration
 //        | expr ";"
@@ -827,6 +828,12 @@ Node *stmt()
     {
         expect(";");
         return new_node(ND_BREAK, tok);
+    }
+
+    if (tok = consume("continue"))
+    {
+        expect(";");
+        return new_node(ND_CONTINUE, tok);
     }
 
     if (is_typename())
