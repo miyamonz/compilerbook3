@@ -188,6 +188,13 @@ int main()
     ASSERT(2, ({ int i=0; goto e; d: i++; e: i++; f: i++; i; }));
     ASSERT(1, ({ int i=0; goto i; g: i++; h: i++; i: i++; i; }));
 
+    ASSERT(5, ({ int i=0; switch(0) { case 0:i=5;break; case 1:i=6;break; case 2:i=7;break; } i; }));
+    ASSERT(6, ({ int i=0; switch(1) { case 0:i=5;break; case 1:i=6;break; case 2:i=7;break; } i; }));
+    ASSERT(7, ({ int i=0; switch(2) { case 0:i=5;break; case 1:i=6;break; case 2:i=7;break; } i; }));
+    ASSERT(0, ({ int i=0; switch(3) { case 0:i=5;break; case 1:i=6;break; case 2:i=7;break; } i; }));
+    ASSERT(5, ({ int i=0; switch(0) { case 0:i=5;break; default:i=7; } i; }));
+    ASSERT(7, ({ int i=0; switch(1) { case 0:i=5;break; default:i=7; } i; }));
+
     printf("OK\n");
     return 0;
 }
