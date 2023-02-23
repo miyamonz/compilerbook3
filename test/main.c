@@ -184,6 +184,10 @@ int main()
     ASSERT(5, ({ int i=0; int j=0; while (i++<10) { if (i>5) continue; j++; } j; }));
     ASSERT(11, ({ int i = 0; int j = 0; while (!i) {while (j++ != 10) continue; break; } j; }));
 
+    ASSERT(3, ({ int i=0; goto a; a: i++; b: i++; c: i++; i; }));
+    ASSERT(2, ({ int i=0; goto e; d: i++; e: i++; f: i++; i; }));
+    ASSERT(1, ({ int i=0; goto i; g: i++; h: i++; i: i++; i; }));
+
     printf("OK\n");
     return 0;
 }
