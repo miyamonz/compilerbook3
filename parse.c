@@ -725,6 +725,22 @@ Node *new_desg_node(Var *var, Designator *desg, Node *rhs)
     return new_unary(ND_EXPR_STMT, node, rhs->tok);
 }
 
+Node *lvar_init_zero(Node *cur, Var *var, Type *ty, Designator *desg)
+{
+    if (ty->kind == TY_ARRAY)
+    {
+        for (int i = 0; i < ty->array_size; i++)
+        {
+            Designator desg2 = {desg, i++};
+            cur = lvar_init_zero(cur, var, ty->base, &desg2);
+        }
+        return cur;
+    }
+
+    cur->next = new_desg_node(var, desg, new_node_num(0, token));
+    return cur->next;
+}
+
 // lvar-initializer = assign
 //                  | "{" lvar-initializer ("," lvar-initializer)* ","? "}"
 //
@@ -738,6 +754,9 @@ Node *new_desg_node(Var *var, Designator *desg, Node *rhs)
 //   x[1][0]=4;
 //   x[1][1]=5;
 //   x[1][2]=6;
+//
+// If an initializer list is shorter than an array, excess array
+// elements are initialized with 0.
 Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg)
 {
     // cur でND_BLOCKを構築する。なので、cur->nextで連結リストを作る
@@ -765,6 +784,14 @@ Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg)
         } while (!peek_end() && consume(","));
 
         expect_end();
+
+        // Set excess array elements to zero.
+        while (i < ty->array_size)
+        {
+            Designator desg2 = {desg, i++};
+            cur = lvar_init_zero(cur, var, ty->base, &desg2);
+        }
+
         return cur;
     }
 
