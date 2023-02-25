@@ -181,6 +181,9 @@ void visit(Node *node)
     case ND_SHR:
         node->ty = node->lhs->ty;
         return;
+    case ND_TERNARY:
+        node->ty = node->then->ty;
+        return;
     case ND_MEMBER:
     {
         if (node->lhs->ty->kind != TY_STRUCT)

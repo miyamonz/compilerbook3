@@ -181,6 +181,20 @@ void gen(Node *node)
         gen(node->rhs);      // value is pushed to the stack
         store(node->ty);
         return;
+    case ND_TERNARY:
+    {
+        int seq = labelseq++;
+        gen(node->cond);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je  .Lelse%d\n", seq);
+        gen(node->then);
+        printf("  jmp .Lend%d\n", seq);
+        printf(".Lelse%d:\n", seq);
+        gen(node->els);
+        printf(".Lend%d:\n", seq);
+        return;
+    }
     case ND_PRE_INC:
         gen_lval(node->lhs);      // 変数のポインタをスタックにpushする。後にstoreするためにスタックに乗せる。
         printf("  push [rsp]\n"); // [rsp]はスタックの頭なので、これは同じ値をpushし直すことになる。

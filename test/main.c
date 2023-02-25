@@ -213,6 +213,9 @@ int main()
     ASSERT(-1, ({ int i=-1; i; }));
     ASSERT(-1, ({ int i=-1; i>>=1; i; }));
 
+    ASSERT(2, 0 ? 1 : 2);
+    ASSERT(1, 1 ? 1 : 2);
+
     printf("OK\n");
     return 0;
 }
