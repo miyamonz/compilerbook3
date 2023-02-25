@@ -924,7 +924,7 @@ Node *expr()
 }
 
 // assign    = logor (assign-op assign)?
-// assign-op = "=" | "+=" | "-=" | "*=" | "/="
+// assign-op = "=" | "+=" | "-=" | "*=" | "/=" | "<<=" | ">>="
 Node *assign()
 {
     Node *node = logor();
@@ -939,6 +939,10 @@ Node *assign()
         node = new_binary(ND_A_MUL, node, assign(), tok);
     if (tok = consume("/="))
         node = new_binary(ND_A_DIV, node, assign(), tok);
+    if (tok = consume("<<="))
+        node = new_binary(ND_A_SHL, node, assign(), tok);
+    if (tok = consume(">>="))
+        node = new_binary(ND_A_SHR, node, assign(), tok);
     return node;
 }
 

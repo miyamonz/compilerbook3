@@ -171,6 +171,10 @@ char *starts_with_reserved(char *p)
     }
 
     static char *ops[] = {
+        // <<より先にマッチさせる必要がある
+        "<<=",
+        ">>=",
+
         "==",
         "!=",
         "<=",

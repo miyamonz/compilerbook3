@@ -173,6 +173,8 @@ void visit(Node *node)
     case ND_A_SUB:
     case ND_A_MUL:
     case ND_A_DIV:
+    case ND_A_SHL:
+    case ND_A_SHR:
     case ND_BITNOT:
     case ND_ASSIGN:
     case ND_SHL:

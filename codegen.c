@@ -215,6 +215,8 @@ void gen(Node *node)
     case ND_A_SUB:
     case ND_A_MUL:
     case ND_A_DIV:
+    case ND_A_SHL:
+    case ND_A_SHR:
     {
         gen_lval(node->lhs);      // 後のstoreのためにポインタをpush
         printf("  push [rsp]\n"); // 同じポインタをpush
@@ -241,6 +243,14 @@ void gen(Node *node)
         case ND_A_DIV:
             printf("  cqo\n");
             printf("  idiv rdi\n");
+            break;
+        case ND_A_SHL:
+            printf("  mov cl, dil\n");
+            printf("  shl rax, cl\n");
+            break;
+        case ND_A_SHR:
+            printf("  mov cl, dil\n");
+            printf("  sar rax, cl\n");
             break;
         }
 
