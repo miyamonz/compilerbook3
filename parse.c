@@ -663,6 +663,26 @@ Function *function()
     return fn;
 }
 
+// Initializer list can end either with "}" or "," followed by "}"
+// to allow a trailing comma. This function returns true if it looks
+// like we are at the end of an initializer list.
+bool peek_end()
+{
+    Token *tok = token;
+    bool ret = consume("}") || (consume(",") && consume("}"));
+    token = tok;
+    return ret;
+}
+
+void expect_end()
+{
+    Token *tok = token;
+    if (consume(",") && consume("}"))
+        return;
+    token = tok;
+    expect("}");
+}
+
 // global-var = type-specifier declarator type-suffix ";"
 void global_var()
 {
@@ -676,7 +696,82 @@ void global_var()
     push_scope(name)->var = var;
 }
 
-// declaration = type-specifier declarator type-suffix ("=" expr) ";"
+typedef struct Designator Designator; // 指定子
+struct Designator
+{
+    Designator *next;
+    int idx;
+};
+// Creates a node for an array access. For example, if var represents
+// a variable x and desg represents indices 3 and 4, this function
+// returns a node representing x[3][4].
+Node *new_desg_node2(Var *var, Designator *desg)
+{
+    Token *tok = var->tok;
+    if (!desg)
+        return new_var(var, tok);
+    // x = {{ , , },{ , ,x}}
+    //  この場合、{idx=1, next={idx=2}}
+    Node *node = new_desg_node2(var, desg->next);
+    // 帰りがけ走査なので、x[1][2] こうなる
+    node = new_binary(ND_ADD, node, new_node_num(desg->idx, tok), tok);
+    return new_unary(ND_DEREF, node, tok);
+}
+
+Node *new_desg_node(Var *var, Designator *desg, Node *rhs)
+{
+    Node *lhs = new_desg_node2(var, desg);
+    Node *node = new_binary(ND_ASSIGN, lhs, rhs, rhs->tok);
+    return new_unary(ND_EXPR_STMT, node, rhs->tok);
+}
+
+// lvar-initializer = assign
+//                  | "{" lvar-initializer ("," lvar-initializer)* ","? "}"
+//
+// An initializer for a local variable is expanded to multiple
+// assignments. For example, this function creates the following
+// nodes for x[2][3]={{1,2,3},{4,5,6}}.
+//
+//   x[0][0]=1;
+//   x[0][1]=2;
+//   x[0][2]=3;
+//   x[1][0]=4;
+//   x[1][1]=5;
+//   x[1][2]=6;
+Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg)
+{
+    // cur でND_BLOCKを構築する。なので、cur->nextで連結リストを作る
+    Token *tok = consume("{");
+    if (!tok)
+    {
+        // { }で囲まれない場合、右辺はassignになる。
+        // 一番外側ではdesg=NULLになり、単なる`var "=" assign`になる
+        cur->next = new_desg_node(var, desg, assign());
+        return cur->next;
+    }
+
+    // x[2][3]={{1,2,3},{4,5,6}}
+    // このとき、2 length array of (3 length array of (int)) であり、Typeもこうなってる
+    if (ty->kind == TY_ARRAY)
+    {
+        int i = 0;
+
+        do
+        {
+            // Designatorは、array typeを外側から巡回しつつ、Designator自身をnextに入れる
+            // なので、上の例だと 3len -> 2len -> null
+            Designator desg2 = {desg, i++};
+            cur = lvar_initializer(cur, var, ty->base, &desg2);
+        } while (!peek_end() && consume(","));
+
+        expect_end();
+        return cur;
+    }
+
+    error_tok(tok, "invalid array initializer");
+}
+
+// declaration = type-specifier declarator type-suffix ("=" lvar-initializer)? ";"
 //             | type-specifier ";"
 Node *declaration()
 {
@@ -709,11 +804,15 @@ Node *declaration()
         return new_node(ND_NULL, tok);
 
     expect("=");
-    Node *lhs = new_var(var, tok);
-    Node *rhs = expr();
+
+    Node head;
+    head.next = NULL;
+    lvar_initializer(&head, var, var->ty, NULL);
     expect(";");
-    Node *node = new_binary(ND_ASSIGN, lhs, rhs, tok);
-    return new_unary(ND_EXPR_STMT, node, tok);
+
+    Node *node = new_node(ND_BLOCK, tok);
+    node->body = head.next;
+    return node;
 }
 
 Node *read_expr_stmt()
