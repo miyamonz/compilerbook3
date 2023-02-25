@@ -199,6 +199,12 @@ int main()
 
     voidfn();
 
+    ASSERT(1, 1 << 0);
+    ASSERT(8, 1 << 3);
+    ASSERT(10, 5 << 1);
+    ASSERT(2, 5 >> 1);
+    ASSERT(-1, -1 >> 1);
+
     printf("OK\n");
     return 0;
 }
