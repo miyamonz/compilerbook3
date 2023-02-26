@@ -237,6 +237,10 @@ int main()
     ASSERT('d', ({ char x[2][4]={"abc","def"}; x[1][0]; }));
     ASSERT('f', ({ char x[2][4]={"abc","def"}; x[1][2]; }));
 
+    ASSERT(4, ({ int x[]={1,2,3,4}; x[3]; }));
+    ASSERT(16, ({ int x[]={1,2,3,4}; sizeof(x); }));
+    ASSERT(4, ({ char x[]="foo"; sizeof(x); }));
+
     printf("OK\n");
     return 0;
 }
