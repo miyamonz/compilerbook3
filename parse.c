@@ -710,8 +710,8 @@ Node *new_desg_node2(Var *var, Designator *desg)
     Token *tok = var->tok;
     if (!desg)
         return new_var(var, tok);
-    // x = {{ , , },{ , ,x}}
-    //  この場合、{idx=1, next={idx=2}}
+    // x = {{ , , },{ , ,here}}
+    //  この場合、desgは{idx=2, next={idx=1}}
     Node *node = new_desg_node2(var, desg->next);
     // 帰りがけ走査なので、x[1][2] こうなる
     node = new_binary(ND_ADD, node, new_node_num(desg->idx, tok), tok);
