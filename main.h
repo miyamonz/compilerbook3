@@ -9,6 +9,7 @@
 
 typedef struct Type Type;
 typedef struct Member Member;
+typedef struct Initializer Initializer;
 
 // tokenize.c
 typedef enum
@@ -70,8 +71,19 @@ struct Var
     int offset; // offset from RBP
 
     // Global variable
-    char *contents;
-    int cont_len;
+    Initializer *initializer;
+};
+
+// Global variable initializer. Global variables can be initialized
+// either by a constant expression or a pointer to another global
+// variable.
+struct Initializer
+{
+    Initializer *next;
+
+    // Constant expression
+    int sz;
+    long val;
 };
 
 typedef struct VarList VarList;

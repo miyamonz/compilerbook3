@@ -684,6 +684,24 @@ void expect_end()
 }
 
 // global-var = type-specifier declarator type-suffix ";"
+Initializer *new_init_val(Initializer *cur, int sz, int val)
+{
+    Initializer *init = calloc(1, sizeof(Initializer));
+    init->sz = sz;
+    init->val = val;
+    cur->next = init;
+    return init;
+}
+
+Initializer *gvar_init_string(char *p, int len)
+{
+    Initializer head;
+    head.next = NULL;
+    Initializer *cur = &head;
+    for (int i = 0; i < len; i++)
+        cur = new_init_val(cur, 1, p[i]);
+    return head.next;
+}
 void global_var()
 {
     Type *ty = type_specifier();
@@ -1526,8 +1544,8 @@ Node *primary()
         token = token->next;
         Type *ty = array_of(char_type(), tok->cont_len);
         Var *var = push_var(new_label(), ty, false, NULL);
-        var->contents = tok->contents;
-        var->cont_len = tok->cont_len;
+
+        var->initializer = gvar_init_string(tok->contents, tok->cont_len);
         return new_var(var, tok);
     }
 
