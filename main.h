@@ -32,7 +32,7 @@ struct Token
     int len;
 
     char *contents; // String literal contents including terminating '\0'
-    char cont_len;  // String literal length
+    int cont_len;   // String literal length
 };
 
 void error(char *fmt, ...);
