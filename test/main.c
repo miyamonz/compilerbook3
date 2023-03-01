@@ -241,6 +241,20 @@ int main()
     ASSERT(16, ({ int x[]={1,2,3,4}; sizeof(x); }));
     ASSERT(4, ({ char x[]="foo"; sizeof(x); }));
 
+    ASSERT(1, ({ struct {int a; int b; int c;} x={1,2,3}; x.a; }));
+    ASSERT(2, ({ struct {int a; int b; int c;} x={1,2,3}; x.b; }));
+    ASSERT(3, ({ struct {int a; int b; int c;} x={1,2,3}; x.c; }));
+    ASSERT(1, ({ struct {int a; int b; int c;} x={1}; x.a; }));
+    ASSERT(0, ({ struct {int a; int b; int c;} x={1}; x.b; }));
+    ASSERT(0, ({ struct {int a; int b; int c;} x={1}; x.c; }));
+
+    ASSERT(1, ({ struct {int a; int b;} x[2]={{1,2},{3,4}}; x[0].a; }));
+    ASSERT(2, ({ struct {int a; int b;} x[2]={{1,2},{3,4}}; x[0].b; }));
+    ASSERT(3, ({ struct {int a; int b;} x[2]={{1,2},{3,4}}; x[1].a; }));
+    ASSERT(4, ({ struct {int a; int b;} x[2]={{1,2},{3,4}}; x[1].b; }));
+
+    ASSERT(0, ({ struct {int a; int b;} x[2]={{1,2}}; x[1].b; }));
+
     printf("OK\n");
     return 0;
 }
