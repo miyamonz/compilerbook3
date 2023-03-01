@@ -604,6 +604,11 @@ void emit_data(Program *prog)
         }
         for (Initializer *init = var->initializer; init; init = init->next)
         {
+            if (init->label)
+            {
+                printf("  .quad %s\n", init->label);
+                continue;
+            }
             if (init->sz == 1)
                 printf("  .byte %ld\n", init->val);
             else

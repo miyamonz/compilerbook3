@@ -693,6 +693,14 @@ Initializer *new_init_val(Initializer *cur, int sz, int val)
     return init;
 }
 
+Initializer *new_init_label(Initializer *cur, char *label)
+{
+    Initializer *init = calloc(1, sizeof(Initializer));
+    init->label = label;
+    cur->next = init;
+    return init;
+}
+
 Initializer *gvar_init_string(char *p, int len)
 {
     Initializer head;
@@ -702,6 +710,32 @@ Initializer *gvar_init_string(char *p, int len)
         cur = new_init_val(cur, 1, p[i]);
     return head.next;
 }
+
+Initializer *gvar_initializer(Initializer *cur, Type *ty)
+{
+    Token *tok = token;
+    Node *expr = conditional();
+    // int init_val = eval(expr);
+
+    // if (expr->kind == ND_ADDR)
+    // {
+    //     if (expr->lhs->kind != ND_VAR)
+    //         error_tok(tok, "invalid initializer");
+    //     return new_init_label(cur, expr->lhs->var->name);
+    // }
+
+    if (expr->kind == ND_VAR && expr->var->ty->kind == TY_ARRAY)
+        return new_init_label(cur, expr->var->name);
+
+    if (expr->kind == ND_NUM)
+    {
+        int init_val = expr->val;
+        return new_init_val(cur, size_of(ty, token), init_val);
+    }
+
+    error_tok(tok, "initializer is stray");
+}
+
 void global_var()
 {
     Type *ty = type_specifier();
@@ -709,9 +743,18 @@ void global_var()
     Token *tok = token;
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
-    expect(";");
+
     Var *var = push_var(name, ty, false, tok);
     push_scope(name)->var = var;
+
+    if (consume("="))
+    {
+        Initializer head;
+        head.next = NULL;
+        gvar_initializer(&head, ty);
+        var->initializer = head.next;
+    }
+    expect(";");
 }
 
 typedef struct Designator Designator; // 指定子
@@ -1542,8 +1585,9 @@ Node *primary()
     if (tok->kind == TK_STR)
     {
         token = token->next;
+        // 文字列リテラルはcharの配列であり、その場でグローバル変数を定義して、初期化内容をVarに保持しつつ、codegen時に生成して実現されている。
         Type *ty = array_of(char_type(), tok->cont_len);
-        Var *var = push_var(new_label(), ty, false, NULL);
+        Var *var = push_var(new_label(), ty, false, tok);
 
         var->initializer = gvar_init_string(tok->contents, tok->cont_len);
         return new_var(var, tok);

@@ -84,6 +84,9 @@ struct Initializer
     // Constant expression
     int sz;
     long val;
+
+    // Reference to another global variable
+    char *label;
 };
 
 typedef struct VarList VarList;

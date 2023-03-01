@@ -19,6 +19,13 @@ int param_decay(int x[]) { return x[0]; }
 
 void voidfn() {}
 
+char g3 = 3;
+short g4 = 4;
+int g5 = 5;
+long g6 = 6;
+// int *g7 = &g5;
+char *g8 = "abc";
+
 int main()
 {
     test_arith();
@@ -254,6 +261,13 @@ int main()
     ASSERT(4, ({ struct {int a; int b;} x[2]={{1,2},{3,4}}; x[1].b; }));
 
     ASSERT(0, ({ struct {int a; int b;} x[2]={{1,2}}; x[1].b; }));
+
+    ASSERT(3, g3);
+    ASSERT(4, g4);
+    ASSERT(5, g5);
+    ASSERT(6, g6);
+    // ASSERT(5, *g7);
+    ASSERT(0, strcmp(g8, "abc"));
 
     printf("OK\n");
     return 0;
