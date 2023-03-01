@@ -26,6 +26,18 @@ long g6 = 6;
 // int *g7 = &g5;
 char *g8 = "abc";
 
+int g9[3] = {0, 1, 2};
+char *g10[] = {"foo", "bar"};
+struct
+{
+    char a;
+    int b;
+} g11[2] = {{1, 2}, {3, 4}};
+struct
+{
+    int a[2];
+} g12[2] = {{{1, 2}}, {{3, 4}}};
+
 int main()
 {
     test_arith();
@@ -268,6 +280,25 @@ int main()
     ASSERT(6, g6);
     // ASSERT(5, *g7);
     ASSERT(0, strcmp(g8, "abc"));
+
+    ASSERT(0, g9[0]);
+    ASSERT(1, g9[1]);
+    ASSERT(2, g9[2]);
+
+    ASSERT(0, strcmp(g10[0], "foo"));
+    ASSERT(0, strcmp(g10[1], "bar"));
+    ASSERT(0, g10[1][3]);
+    ASSERT(2, sizeof(g10) / sizeof(*g10));
+
+    ASSERT(1, g11[0].a);
+    ASSERT(2, g11[0].b);
+    ASSERT(3, g11[1].a);
+    ASSERT(4, g11[1].b);
+
+    ASSERT(1, g12[0].a[0]);
+    ASSERT(2, g12[0].a[1]);
+    ASSERT(3, g12[1].a[0]);
+    ASSERT(4, g12[1].a[1]);
 
     printf("OK\n");
     return 0;
